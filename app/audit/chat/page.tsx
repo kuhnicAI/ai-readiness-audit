@@ -106,8 +106,15 @@ function ChatAudit() {
   useEffect(() => {
     if (initRef.current) return
     initRef.current = true
-    sendToApi([{ role: 'user', content: 'Start the audit.' }])
-  }, [sendToApi])
+    // Show first message instantly without API call
+    const firstMsg: Message = { role: 'assistant', content: "Let's find your number. First, what does your business actually do?" }
+    setMessages([firstMsg])
+    setInlineOptions([])
+    setIsTextQuestion(true)
+    setStreaming(true)
+    // Trigger streaming animation on the hardcoded message
+    setTimeout(() => scrollToBottom(), 50)
+  }, [scrollToBottom])
 
   const handleStreamDone = useCallback(() => {
     setStreaming(false)
