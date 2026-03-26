@@ -68,9 +68,9 @@ const TESTIMONIALS = [
   },
   {
     quote: 'The AI agent performed exactly how our team would qualify applicants, but faster, more consistent, and always available. After the pilot success, we\'re now expanding this across more than 40 university programs.',
-    name: 'Director of Enrollment',
-    designation: 'Enrollment Partnerships, Leading EdTech Platform',
-    src: '/testimonials/edtech-logo.png',
+    name: 'Pagan',
+    designation: 'Director of Enrollment',
+    src: '/testimonials/pagan.jpg',
   },
   {
     quote: 'The AI agent is able to manage the full booking flow end-to-end, from finding the right park to taking the deposit. It feels natural, fast, and reliable, and it works at the same quality every single time.',
@@ -87,8 +87,8 @@ const TESTIMONIALS = [
   {
     quote: 'The AI handles every call the same way, professionally, instantly, and without missed details. Our team now focuses on the jobs that actually need human attention.',
     name: 'Lucy Burton',
-    designation: 'Owner',
-    src: '/testimonials/lucy-burton.png',
+    designation: 'Owner, Excel Security',
+    src: '/testimonials/lucy-burton.jpg',
   },
   {
     quote: 'The AI handles first-line triage so our staff can focus on complex client needs. We\'re targeting a 50% reduction in frontline team size while handling the same call volume.',
