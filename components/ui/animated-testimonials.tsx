@@ -30,12 +30,16 @@ export const AnimatedTestimonials = ({
     [testimonials]
   )
 
+  const [lastInteraction, setLastInteraction] = useState(0)
+
   const handleNext = useCallback(() => {
     setActive((prev) => (prev + 1) % testimonials.length)
+    setLastInteraction(Date.now())
   }, [testimonials.length])
 
   const handlePrev = () => {
     setActive((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+    setLastInteraction(Date.now())
   }
 
   const isActive = (index: number) => {
@@ -44,10 +48,15 @@ export const AnimatedTestimonials = ({
 
   useEffect(() => {
     if (autoplay) {
-      const interval = setInterval(handleNext, 5000)
+      const interval = setInterval(() => {
+        // Only auto-advance if no manual interaction in the last 8 seconds
+        if (Date.now() - lastInteraction > 8000) {
+          setActive((prev) => (prev + 1) % testimonials.length)
+        }
+      }, 8000)
       return () => clearInterval(interval)
     }
-  }, [autoplay, handleNext])
+  }, [autoplay, testimonials.length, lastInteraction])
 
   return (
     <div className={cn('max-w-sm md:max-w-5xl mx-auto px-4 md:px-8 lg:px-12 py-20', className)}>
