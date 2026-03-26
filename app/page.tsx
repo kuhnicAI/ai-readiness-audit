@@ -68,8 +68,8 @@ const TESTIMONIALS = [
   },
   {
     quote: 'The AI agent performed exactly how our team would qualify applicants, but faster, more consistent, and always available. After the pilot success, we\'re now expanding this across more than 40 university programs.',
-    name: 'Pagan',
-    designation: 'Director of Enrollment',
+    name: 'Director of Enrollment',
+    designation: 'Leading EdTech Platform',
     src: '/testimonials/pagan.jpg',
   },
   {
