@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       } catch { /* non-blocking */ }
     }
 
-    // Send simple email (no PDF attachment)
+    // Send simple email to the lead
     if (contactEmail && process.env.RESEND_API_KEY) {
       try {
         console.log('[Email] Sending to:', contactEmail)
@@ -60,6 +60,41 @@ export async function POST(req: NextRequest) {
         console.log('[Email] Result:', JSON.stringify(emailResult))
       } catch (err) {
         console.error('[Email] Failed:', err)
+      }
+
+      // Notify Gytis + Jorge about the new lead
+      try {
+        const { Resend } = await import('resend')
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const displayName = companyName.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '')
+        await resend.emails.send({
+          from: 'Kuhnic AI <noreply@audit.kuhnic.ai>',
+          to: 'gytis@kuhnic.ai',
+          cc: 'jorge@kuhnic.ai',
+          subject: `New audit lead: ${contactName} from ${displayName}`,
+          text: `New lead just completed the audit.
+
+Name: ${contactName}
+Email: ${contactEmail}
+Website: ${companyName}
+Role: ${role}
+
+Total waste identified: ${Math.round(waste.totalWaste / 1000)}k/yr
+Revenue at risk: ${Math.round(waste.revenueAtRisk / 1000)}k/yr
+Admin cost: ${Math.round(waste.adminCost / 1000)}k/yr
+
+Business type: ${(answers.business_type as string) ?? 'Not specified'}
+Weekly inbound: ${(answers.weekly_inbound as string) ?? 'Not specified'}
+Missed rate: ${(answers.missed_rate as string) ?? 'Not specified'}
+Client value: ${(answers.client_value as string) ?? 'Not specified'}
+CRM status: ${(answers.crm_status as string) ?? 'Not specified'}
+Urgency: ${(answers.urgency as string) ?? 'Not specified'}
+
+Results page: ${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://audit.kuhnic.ai'}/results/${audit_id}`,
+        } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.log('[Email] Lead notification sent to gytis + jorge')
+      } catch (err) {
+        console.error('[Email] Lead notification failed:', err)
       }
     }
 
