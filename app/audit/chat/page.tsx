@@ -12,7 +12,7 @@ interface Message {
 
 const TOTAL_VARIABLES = 12
 
-function useStreamText(text: string, speed = 18) {
+function useStreamText(text: string, speed = 8) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
 
@@ -68,7 +68,7 @@ function ChatAudit() {
     setInlineOptions([])
     setIsTextQuestion(false)
 
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 400))
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 200))
 
     try {
       const res = await fetch('/api/audit/chat', {
