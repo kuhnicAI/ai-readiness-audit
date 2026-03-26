@@ -331,6 +331,69 @@ const SIZE_LABELS: Record<string, string> = {
   '500+': '500 or more people',
 }
 
+function PdfDownloadSection({ audit, waste, report, displayName }: { audit: AuditData; waste: WasteCalculation; report: string; displayName: string }) {
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState('')
+
+  const handleDownload = async () => {
+    setPdfLoading(true)
+    setPdfError('')
+    try {
+      const res = await fetch('/api/audit/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: audit.company_name,
+          contactName: audit.contact_name,
+          role: audit.role ?? '',
+          waste,
+          reportRaw: report,
+          businessType: audit.answers?.business_type ?? '',
+          employeeCount: audit.answers?.employee_count ?? '',
+          date: new Date(audit.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(err.error ?? `Server returned ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `AI-Audit-${displayName}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('PDF download failed:', err)
+      setPdfError(err instanceof Error ? err.message : 'Failed to generate PDF. Please try again.')
+    }
+    setPdfLoading(false)
+  }
+
+  return (
+    <section className="relative z-10 py-16 px-6 text-center">
+      <button
+        onClick={handleDownload}
+        disabled={pdfLoading}
+        className="rounded-full bg-[#1a1a2e] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#2a2a3e] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+      >
+        {pdfLoading ? (
+          <span className="flex items-center gap-2">
+            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Generating PDF...
+          </span>
+        ) : 'Download Your Full Report (PDF)'}
+      </button>
+      {pdfError && <p className="mt-3 text-[13px] text-red-500">{pdfError}</p>}
+      <p className="mt-4 text-[13px] text-[#999]">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
+    </section>
+  )
+}
+
 function benchmarkLine(businessType: string, companySize: string): string {
   const typeLabel = TYPE_LABELS[businessType] ?? 'business'
   const sizeLabel = SIZE_LABELS[companySize] ?? companySize + ' people'
@@ -556,39 +619,7 @@ export default function ResultsPage() {
 
       {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
       {report && !reportLoading && (
-        <section className="relative z-10 py-16 px-6 text-center">
-          <button
-            onClick={async () => {
-              const res = await fetch('/api/audit/pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  companyName: audit.company_name,
-                  contactName: audit.contact_name,
-                  role: audit.role ?? '',
-                  waste: w,
-                  reportRaw: report,
-                  businessType: audit.answers?.business_type ?? '',
-                  employeeCount: audit.answers?.employee_count ?? '',
-                  date: new Date(audit.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-                }),
-              })
-              if (res.ok) {
-                const blob = await res.blob()
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `AI-Audit-${displayName}.pdf`
-                a.click()
-                URL.revokeObjectURL(url)
-              }
-            }}
-            className="rounded-full bg-[#1a1a2e] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#2a2a3e] transition-colors cursor-pointer"
-          >
-            Download Your Full Report (PDF)
-          </button>
-          <p className="mt-4 text-[13px] text-[#999]">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
-        </section>
+        <PdfDownloadSection audit={audit} waste={w} report={report} displayName={displayName} />
       )}
 
       {/* ═══ SECTION 5: CTA ═══ */}

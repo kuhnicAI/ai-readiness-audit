@@ -3,6 +3,8 @@ import { generatePdfPuppeteer } from '@/lib/pdf-puppeteer'
 import { parseReport } from '@/lib/generate-report'
 import type { WasteCalculation } from '@/lib/waste'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { companyName, contactName, role, waste, reportRaw, businessType, employeeCount, date } = body as {
@@ -21,8 +23,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const report = parseReport(reportRaw)
+    console.log('[PDF API] Starting PDF generation for:', companyName)
+    console.log('[PDF API] BROWSERLESS_API_KEY set:', !!process.env.BROWSERLESS_API_KEY)
 
+    const report = parseReport(reportRaw)
     console.log('[PDF API] Parsed report - fix1Name:', report.fix1Name, 'month1:', report.month1Milestones.length, 'items')
 
     const pdfBuffer = await generatePdfPuppeteer({
