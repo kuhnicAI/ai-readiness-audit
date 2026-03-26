@@ -1,15 +1,13 @@
 import jsPDF from 'jspdf'
-import type { AuditScores } from './scoring'
-import type { Finding } from './waste'
+import type { WasteCalculation } from './waste'
 
 interface AuditData {
   company_name: string
   contact_name: string
-  industry: string
-  scores: AuditScores
+  scores: WasteCalculation
   total_waste: number
-  findings: Finding[]
   created_at: string
+  report?: string
 }
 
 const fmt = (n: number) => '\u00A3' + n.toLocaleString('en-GB')
@@ -18,242 +16,212 @@ export async function generatePdf(audit: AuditData) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pw = doc.internal.pageSize.getWidth()
   const ph = doc.internal.pageSize.getHeight()
-  const m = 20 // margin
-  const cw = pw - m * 2 // content width
+  const m = 20
+  const cw = pw - m * 2
+  const w = audit.scores
 
-  const DARK = [0, 38, 62] as const
-  const RED = [220, 38, 38] as const
-  const GREY = [107, 114, 128] as const
-  const LIGHT = [240, 242, 245] as const
+  const DARK = [26, 26, 46] as const
+  const GREEN = [0, 208, 132] as const
+  const GREY = [140, 140, 140] as const
+  const LIGHT_GREY = [200, 200, 200] as const
 
   const dateStr = new Date(audit.created_at).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
-  // ═══════════════════════════════════════
-  //  PAGE 1: COVER
-  // ═══════════════════════════════════════
-  doc.setFillColor(...DARK)
-  doc.rect(0, 0, pw, ph, 'F')
-
-  // Transputec + Kuhnic header
-  doc.setTextColor(255, 255, 255)
+  // ═══ PAGE 1: COVER ═══
+  doc.setTextColor(...DARK)
   doc.setFontSize(11)
   doc.setFont('helvetica', 'normal')
-  doc.text('TRANSPUTEC  \u00B7  KUHNIC AI', pw / 2, 35, { align: 'center' })
+  doc.text('KUHNIC  \u00B7  TRANSPUTEC', pw / 2, 35, { align: 'center' })
 
-  // Title
   doc.setFontSize(32)
   doc.setFont('helvetica', 'bold')
   doc.text('AI Readiness', pw / 2, 72, { align: 'center' })
   doc.text('Audit Report', pw / 2, 86, { align: 'center' })
 
-  // Company
   doc.setFontSize(18)
   doc.setFont('helvetica', 'normal')
-  doc.text(audit.company_name, pw / 2, 108, { align: 'center' })
+  doc.setTextColor(...GREY)
+  doc.text(audit.company_name, pw / 2, 110, { align: 'center' })
 
-  if (audit.industry) {
-    doc.setFontSize(12)
-    doc.setTextColor(180, 190, 200)
-    doc.text(audit.industry, pw / 2, 118, { align: 'center' })
-  }
-
-  // Score circle
-  doc.setFillColor(255, 255, 255)
-  doc.circle(pw / 2, 160, 28, 'F')
-  doc.setTextColor(...DARK)
-  doc.setFontSize(34)
+  doc.setTextColor(...GREEN)
+  doc.setFontSize(48)
   doc.setFont('helvetica', 'bold')
-  doc.text(String(audit.scores.overall), pw / 2, 164, { align: 'center' })
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.text('out of 100', pw / 2, 174, { align: 'center' })
+  doc.text(fmt(w.totalWaste), pw / 2, 160, { align: 'center' })
 
-  // Band label
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(15)
-  doc.setFont('helvetica', 'bold')
-  doc.text(audit.scores.band, pw / 2, 200, { align: 'center' })
-
-  // Waste figure
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(180, 190, 200)
-  doc.text('Estimated Annual Waste', pw / 2, 218, { align: 'center' })
-  doc.setTextColor(239, 68, 68)
-  doc.setFontSize(28)
-  doc.setFont('helvetica', 'bold')
-  doc.text(fmt(audit.total_waste), pw / 2, 232, { align: 'center' })
-
-  // Band description
-  doc.setTextColor(200, 210, 220)
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  const bandLines = doc.splitTextToSize(audit.scores.bandDescription, cw - 20)
-  doc.text(bandLines, pw / 2, 252, { align: 'center' })
-
-  // Footer
-  doc.setFontSize(9)
-  doc.setTextColor(120, 130, 140)
-  doc.text(`Prepared for ${audit.contact_name}  \u00B7  ${dateStr}`, pw / 2, ph - 20, { align: 'center' })
-
-  // ═══════════════════════════════════════
-  //  PAGE 2: CATEGORY BREAKDOWN
-  // ═══════════════════════════════════════
-  doc.addPage()
-  let y = 30
-
-  doc.setTextColor(...DARK)
-  doc.setFontSize(22)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Category Breakdown', m, y)
-  y += 18
-
-  for (const cat of audit.scores.categories) {
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...DARK)
-    doc.text(cat.label, m, y)
-
-    const scoreColor = cat.score >= 75 ? [16, 185, 129] : cat.score >= 50 ? [...DARK] : cat.score >= 25 ? [245, 158, 11] : [239, 68, 68]
-    doc.setTextColor(scoreColor[0], scoreColor[1], scoreColor[2])
-    doc.text(`${cat.score}%`, pw - m, y, { align: 'right' })
-    y += 6
-
-    // Bar bg
-    doc.setFillColor(...LIGHT)
-    doc.roundedRect(m, y, cw, 5, 2.5, 2.5, 'F')
-    // Bar fill
-    const barW = Math.max((cat.score / 100) * cw, 5)
-    doc.setFillColor(scoreColor[0], scoreColor[1], scoreColor[2])
-    doc.roundedRect(m, y, barW, 5, 2.5, 2.5, 'F')
-    y += 18
-  }
-
-  // ═══════════════════════════════════════
-  //  PAGES 3+: FINDINGS
-  // ═══════════════════════════════════════
-  doc.addPage()
-  y = 30
-
-  doc.setTextColor(...DARK)
-  doc.setFontSize(22)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Key Findings', m, y)
-  y += 6
-  doc.setFontSize(11)
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...GREY)
-  doc.text(`${audit.findings.length} issue${audit.findings.length !== 1 ? 's' : ''} identified  \u00B7  ${fmt(audit.total_waste)} estimated annual waste`, m, y)
-  y += 14
+  doc.text('estimated annual cost of inefficiency', pw / 2, 175, { align: 'center' })
 
-  for (let i = 0; i < audit.findings.length; i++) {
-    const f = audit.findings[i]
+  // Two-part breakdown
+  doc.setFontSize(12)
+  doc.setTextColor(...DARK)
+  doc.text(`${fmt(w.revenueAtRisk)} revenue at risk from missed enquiries`, pw / 2, 200, { align: 'center' })
+  doc.text(`${fmt(w.adminCost)} cost of manual processes`, pw / 2, 210, { align: 'center' })
 
-    // Check if we need a new page (need ~80mm for a full finding card)
-    if (y > ph - 90) {
-      doc.addPage()
-      y = 30
-    }
+  doc.setFontSize(9)
+  doc.setTextColor(...LIGHT_GREY)
+  doc.text(`Prepared for ${audit.contact_name}  \u00B7  ${dateStr}`, pw / 2, ph - 20, { align: 'center' })
 
-    // Finding header bar
-    doc.setFillColor(248, 249, 252)
-    doc.roundedRect(m, y - 4, cw, 18, 3, 3, 'F')
+  // ═══ PAGE 2: BREAKDOWN ═══
+  doc.addPage()
 
-    // Number circle
-    doc.setFillColor(...DARK)
-    doc.circle(m + 7, y + 4, 4, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'bold')
-    doc.text(String(i + 1), m + 7, y + 5.5, { align: 'center' })
+  let y = 30
+  doc.setTextColor(...DARK)
+  doc.setFontSize(22)
+  doc.setFont('helvetica', 'bold')
+  doc.text('How we calculated this', m, y)
+  y += 18
 
-    // Title
+  doc.setFontSize(14)
+  doc.text('Revenue at risk', m, y)
+  y += 10
+
+  const revDetails = [
+    ['Weekly inbound enquiries', String(w.weeklyInbound)],
+    ['Missed rate', `${Math.round(w.missedRate * 100)}%${w.missedRateAssumed ? ' (estimated)' : ''}`],
+    ['Missed enquiries per week', String(Math.round(w.missedEnquiriesPerWeek))],
+    ['Assumed conversion rate', `${Math.round(w.conversionRate * 100)}%`],
+    ['Client value', fmt(w.clientValue)],
+    ['Annual revenue at risk', fmt(w.revenueAtRisk)],
+  ]
+
+  for (const [label, value] of revDetails) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...GREY)
+    doc.text(label, m, y)
     doc.setTextColor(...DARK)
+    doc.setFont('helvetica', 'bold')
+    doc.text(value, pw - m, y, { align: 'right' })
+    y += 9
+  }
+
+  y += 10
+  doc.setTextColor(...DARK)
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Manual process cost', m, y)
+  y += 10
+
+  const adminDetails = [
+    ['Weekly admin hours', `${w.weeklyAdminHours}${w.adminHoursAssumed ? ' (estimated)' : ''}`],
+    ['People involved', String(w.adminHeadcount)],
+    ['Hourly rate', `\u00A3${w.hourlyRate.toFixed(0)}/hr${w.salaryAssumed ? ' (UK median)' : ''}`],
+    ['Salary basis', w.salaryUsed],
+    ['Annual hours lost', w.annualHoursLost.toLocaleString('en-GB')],
+    ['Annual admin cost', fmt(w.adminCost)],
+  ]
+
+  for (const [label, value] of adminDetails) {
     doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    const titleLines = doc.splitTextToSize(f.title, cw - 55)
-    doc.text(titleLines, m + 15, y + 1 + (titleLines.length > 1 ? 0 : 3))
-
-    // Waste
-    doc.setTextColor(...RED)
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.text(`${fmt(f.annualWaste)}/yr`, pw - m, y + 5, { align: 'right' })
-
-    y += 18
-
-    // Problem
+    doc.setFont('helvetica', 'normal')
     doc.setTextColor(...GREY)
-    doc.setFontSize(9)
+    doc.text(label, m, y)
+    doc.setTextColor(...DARK)
     doc.setFont('helvetica', 'bold')
-    doc.text('THE PROBLEM', m + 2, y)
-    y += 5
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(60, 66, 87)
-    const probLines = doc.splitTextToSize(f.problem, cw - 4)
-    doc.text(probLines, m + 2, y)
-    y += probLines.length * 4.5 + 4
+    doc.text(value, pw - m, y, { align: 'right' })
+    y += 9
+  }
 
-    // Detail
-    doc.setTextColor(...GREY)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.text('THE DETAIL', m + 2, y)
-    y += 5
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(60, 66, 87)
-    const detLines = doc.splitTextToSize(f.detail, cw - 4)
-    doc.text(detLines, m + 2, y)
-    y += detLines.length * 4.5 + 4
+  y += 15
+  doc.setDrawColor(...GREEN)
+  doc.setLineWidth(0.5)
+  doc.line(m, y, pw - m, y)
+  y += 10
+  doc.setFontSize(16)
+  doc.setTextColor(...GREEN)
+  doc.text('Total annual waste', m, y)
+  doc.text(fmt(w.totalWaste), pw - m, y, { align: 'right' })
 
-    // How we'd fix it
-    doc.setTextColor(...GREY)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.text('HOW WE\'D FIX IT', m + 2, y)
-    y += 5
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(60, 66, 87)
-    const fixLines = doc.splitTextToSize(f.fix, cw - 4)
-    doc.text(fixLines, m + 2, y)
-    y += fixLines.length * 4.5 + 4
+  // ═══ PAGES 3+: AI REPORT ═══
+  if (audit.report) {
+    doc.addPage()
+    y = 30
 
-    // Next step (highlighted)
-    if (y > ph - 30) { doc.addPage(); y = 30 }
-    doc.setFillColor(0, 38, 62)
-    const nsLines = doc.splitTextToSize(f.nextStep, cw - 12)
-    const nsHeight = nsLines.length * 4.5 + 8
-    doc.roundedRect(m, y - 2, cw, nsHeight, 3, 3, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'bold')
-    doc.text('NEXT STEP', m + 5, y + 3)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    doc.text(nsLines, m + 5, y + 3 + 5)
-    y += nsHeight + 10
+    const cleanReport = audit.report
+      .replace(/\*\*\*/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/^#{1,6}\s+/gm, '')
 
-    // Separator
-    if (i < audit.findings.length - 1 && y < ph - 30) {
-      doc.setDrawColor(...LIGHT)
-      doc.setLineWidth(0.3)
-      doc.line(m + 20, y - 3, pw - m - 20, y - 3)
-      y += 4
+    const lines = cleanReport.split('\n')
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed) { y += 4; continue }
+
+      // Check if we need a new page
+      if (y > ph - 25) {
+        doc.addPage()
+        y = 30
+      }
+
+      if (trimmed.startsWith('SECTION') || trimmed.startsWith('AUDIT REPORT')) {
+        const title = trimmed.replace(/^SECTION \d+:\s*/, '').replace(/^AUDIT REPORT FOR\s*/, '')
+        y += 6
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...DARK)
+        doc.text(title, m, y)
+        y += 10
+      } else if (trimmed.startsWith('Fix ') && trimmed.includes(':')) {
+        y += 6
+        doc.setFontSize(13)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...DARK)
+        const fixLines = doc.splitTextToSize(trimmed, cw)
+        doc.text(fixLines, m, y)
+        y += fixLines.length * 5.5 + 4
+      } else if (trimmed.startsWith('Estimated annual impact:')) {
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...GREEN)
+        doc.text(trimmed, m, y)
+        y += 7
+      } else if (trimmed.startsWith('Now:') || trimmed.startsWith('The problem:')) {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(217, 119, 6) // amber
+        doc.text('RIGHT NOW', m, y)
+        y += 5
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...DARK)
+        const content = trimmed.replace(/^(Now|The problem):\s*/, '')
+        const wrapped = doc.splitTextToSize(content, cw)
+        doc.text(wrapped, m, y)
+        y += wrapped.length * 4.5 + 4
+      } else if (trimmed.startsWith('After:') || trimmed.startsWith('The fix:')) {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...GREEN)
+        doc.text('AFTER THE FIX', m, y)
+        y += 5
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...DARK)
+        const content = trimmed.replace(/^(After|The fix):\s*/, '')
+        const wrapped = doc.splitTextToSize(content, cw)
+        doc.text(wrapped, m, y)
+        y += wrapped.length * 4.5 + 4
+      } else {
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(80, 80, 80)
+        const wrapped = doc.splitTextToSize(trimmed, cw)
+        doc.text(wrapped, m, y)
+        y += wrapped.length * 4.5 + 3
+      }
     }
   }
 
-  // ═══════════════════════════════════════
-  //  LAST PAGE: CTA
-  // ═══════════════════════════════════════
+  // ═══ LAST PAGE: CTA ═══
   doc.addPage()
 
-  // CTA box centered on page
   const boxY = 70
-  const boxH = 100
-  doc.setFillColor(...DARK)
-  doc.roundedRect(m, boxY, cw, boxH, 5, 5, 'F')
+  doc.setFillColor(...GREEN)
+  doc.roundedRect(m, boxY, cw, 90, 5, 5, 'F')
 
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(22)
@@ -263,26 +231,20 @@ export async function generatePdf(audit: AuditData) {
   doc.setFontSize(11)
   doc.setFont('helvetica', 'normal')
   const ctaLines = doc.splitTextToSize(
-    'Our AI transformation team can turn these findings into action. Most clients see ROI within the first month. Book a free 30-minute consultation to discuss your personalised roadmap.',
+    'Our AI transformation team can turn these findings into action. Most clients see ROI within the first month. Book a free consultation to discuss your personalised roadmap.',
     cw - 30
   )
   doc.text(ctaLines, pw / 2, boxY + 40, { align: 'center' })
 
   doc.setFontSize(13)
   doc.setFont('helvetica', 'bold')
-  doc.text('calendly.com/transputec-ai/consultation', pw / 2, boxY + 70, { align: 'center' })
+  doc.text('calendly.com/jorge-linklemon/30min', pw / 2, boxY + 70, { align: 'center' })
 
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text('hello@transputec.com', pw / 2, boxY + 80, { align: 'center' })
-
-  // Footer
-  doc.setTextColor(...GREY)
+  doc.setTextColor(...LIGHT_GREY)
   doc.setFontSize(8)
-  doc.text('Powered by Transputec & Kuhnic AI', pw / 2, ph - 15, { align: 'center' })
+  doc.text('Powered by Kuhnic AI & Transputec', pw / 2, ph - 15, { align: 'center' })
   doc.text(`Generated ${dateStr}  \u00B7  Confidential`, pw / 2, ph - 10, { align: 'center' })
 
-  // Save
-  const filename = `AI-Readiness-Audit-${audit.company_name.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`
+  const filename = `AI-Audit-${audit.company_name.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`
   doc.save(filename)
 }
