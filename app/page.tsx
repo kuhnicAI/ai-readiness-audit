@@ -196,9 +196,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
-            Your phone rings when you&rsquo;re<br />
-            <em className="text-[#00D084] italic">busy, closed, or understaffed.</em><br />
-            Find out what that&rsquo;s worth annually.
+            Every missed call is money<br />
+            <em className="text-[#00D084] italic">you&rsquo;ll never see.</em>
           </motion.h1>
 
           <motion.p
@@ -207,7 +206,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            Takes 3 minutes. We calculate your exact annual revenue loss from missed and mishandled calls.
+            60 seconds. See exactly how much it&rsquo;s costing you every year.
           </motion.p>
 
           <motion.div
@@ -220,7 +219,7 @@ export default function HomePage() {
               onClick={handleStartAudit}
               className="rounded-full bg-[#00D084] px-8 py-4 text-[15px] font-semibold text-white hover:bg-[#00b873] transition-colors shadow-lg shadow-[#00D084]/20"
             >
-              Show Me the Numbers &nbsp;&rarr;
+              Calculate My Lost Revenue Now &nbsp;&rarr;
             </button>
           </motion.div>
         </div>
@@ -321,7 +320,7 @@ export default function HomePage() {
             onClick={handleStartAudit}
             className="mt-10 inline-block rounded-full bg-[#00D084] px-10 py-4 text-[16px] font-semibold text-white hover:bg-[#00b873] transition-colors shadow-lg shadow-[#00D084]/20"
           >
-            Show Me the Numbers &nbsp;&rarr;
+            Calculate My Lost Revenue Now &nbsp;&rarr;
           </button>
           <p className="mt-6 text-[12px] text-[#aaa]">
             Free &middot; No sales call &middot; Your data stays private
