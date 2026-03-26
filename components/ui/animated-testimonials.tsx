@@ -86,14 +86,22 @@ export const AnimatedTestimonials = ({
                   }}
                   className="absolute inset-0 origin-bottom"
                 >
-                  <Image
-                    src={testimonial.src}
-                    alt={testimonial.name}
-                    width={400}
-                    height={400}
-                    draggable={false}
-                    className="h-full w-full rounded-3xl object-cover object-center"
-                  />
+                  {testimonial.src ? (
+                    <Image
+                      src={testimonial.src}
+                      alt={testimonial.name}
+                      width={400}
+                      height={400}
+                      draggable={false}
+                      className="h-full w-full rounded-3xl object-cover object-center"
+                    />
+                  ) : (
+                    <div className="h-full w-full rounded-3xl bg-[#f0f0f0] flex items-center justify-center">
+                      <span className="text-[48px] font-bold text-[#ccc]">
+                        {testimonial.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                      </span>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

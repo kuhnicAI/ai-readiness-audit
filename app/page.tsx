@@ -76,13 +76,13 @@ const TESTIMONIALS = [
     quote: 'The AI agent is able to manage the full booking flow end-to-end, from finding the right park to taking the deposit. It feels natural, fast, and reliable, and it works at the same quality every single time.',
     name: 'Operations Lead',
     designation: 'Operations, Trampoline Park Company',
-    src: '/testimonials/trampoline-logo.png',
+    src: '',
   },
   {
     quote: 'The system runs continuously and routes every call correctly. Data is complete, bookings are accurate, and our staff only touches high-value cases.',
     name: 'Kevin Kim',
     designation: 'Technical Lead, Vasquez Law Firm',
-    src: '/testimonials/kevin-kim.jpg',
+    src: '',
   },
   {
     quote: 'The AI handles every call the same way, professionally, instantly, and without missed details. Our team now focuses on the jobs that actually need human attention.',
