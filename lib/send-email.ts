@@ -81,7 +81,7 @@ kuhnic.ai`
   const emailPayload: Record<string, unknown> = {
     from: 'Kuhnic AI <noreply@audit.kuhnic.ai>',
     to,
-    subject: `Your audit report for ${displayName} is ready`,
+    subject: `Here's your audit for ${displayName}`,
     html,
     text: textContent,
   }

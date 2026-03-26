@@ -312,11 +312,18 @@ body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6
 <div id="content-ready"></div>
 </body></html>`
 
+  const browserlessKey = process.env.BROWSERLESS_API_KEY
   const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME
 
   let browser
-  if (isVercel) {
-    // Serverless: use puppeteer-core + @sparticuz/chromium
+  if (browserlessKey) {
+    // Use Browserless cloud (works on Vercel and locally)
+    console.log('[PDF] Connecting to Browserless...')
+    browser = await puppeteerCore.connect({
+      browserWSEndpoint: `wss://production-sfo.browserless.io?token=${browserlessKey}`,
+    })
+  } else if (isVercel) {
+    // Serverless fallback: puppeteer-core + @sparticuz/chromium
     const executablePath = await chromium.executablePath()
     browser = await puppeteerCore.launch({
       args: chromium.args,
