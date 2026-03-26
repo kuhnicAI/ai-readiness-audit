@@ -66,14 +66,13 @@ export async function generatePdfPuppeteer(input: PdfInput): Promise<Buffer> {
   const mHtml = (items: string[]) => items.slice(0, 4).map(m => `<li>${esc(truncWords(m, 6))}</li>`).join('')
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6;}
 .page{width:210mm;min-height:297mm;padding:50px 55px;position:relative;page-break-after:always;}
 .page::before{content:'';position:absolute;top:0;left:0;right:0;height:8px;background:#00c97d;}
 .pf{position:absolute;bottom:25px;left:55px;right:55px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;}
-.serif{font-family:'Playfair Display',serif;}
+.serif{font-family:Georgia,'Times New Roman',serif;}
 .green{color:#00c97d;}
 .muted{color:#6b7280;}
 .label{font-size:11px;text-transform:uppercase;letter-spacing:0.2em;font-weight:600;}
@@ -113,11 +112,11 @@ body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6
 .steps-left{flex:1.2;}
 .steps-right{flex:0.8;}
 .step-item{display:flex;gap:14px;margin-bottom:20px;}
-.step-num{font-family:'Playfair Display',serif;font-size:40px;color:#e5e7eb;line-height:1;min-width:44px;}
+.step-num{font-family:Georgia,'Times New Roman',serif;font-size:40px;color:#e5e7eb;line-height:1;min-width:44px;}
 .step-content h4{font-size:14px;font-weight:700;margin-bottom:3px;}
 .step-content p{font-size:12px;color:#6b7280;line-height:1.5;}
 .dark-box{background:#0a1628;color:white;border-radius:14px;padding:28px;}
-.dark-box h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:8px;}
+.dark-box h3{font-family:Georgia,'Times New Roman',serif;font-size:22px;margin-bottom:8px;}
 .dark-box .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
 .dark-box .cal-link{color:#00c97d;font-size:13px;font-weight:600;}
 .dark-box .credit{font-size:11px;color:white;margin-top:20px;opacity:0.7;}
@@ -203,24 +202,24 @@ body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6
   <svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:16px;">
     <rect width="480" height="320" fill="white" rx="8"/>
     <rect x="40" y="20" width="200" height="130" fill="rgba(0,201,125,0.08)" rx="4"/>
-    <text x="50" y="38" font-size="10" fill="#00c97d" font-family="Inter,sans-serif" font-weight="600">Highest priority</text>
+    <text x="50" y="38" font-size="10" fill="#00c97d" font-family="Arial,sans-serif" font-weight="600">Highest priority</text>
     <line x1="40" y1="90" x2="460" y2="90" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="40" y1="160" x2="460" y2="160" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="40" y1="230" x2="460" y2="230" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="145" y1="20" x2="145" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="250" y1="20" x2="250" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="355" y1="20" x2="355" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
-    <text x="14" y="160" font-size="11" fill="#9ca3af" font-family="Inter,sans-serif" transform="rotate(-90,14,160)" text-anchor="middle">Financial Impact</text>
-    <text x="250" y="315" font-size="11" fill="#9ca3af" font-family="Inter,sans-serif" text-anchor="middle">Implementation Effort →</text>
+    <text x="14" y="160" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" transform="rotate(-90,14,160)" text-anchor="middle">Financial Impact</text>
+    <text x="250" y="315" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Implementation Effort →</text>
     <circle cx="${40+420*0.22}" cy="${20+275*0.15}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.22}" y="${20+275*0.15+4}" font-size="11" fill="white" font-family="Inter,sans-serif" font-weight="700" text-anchor="middle">1</text>
-    <text x="${40+420*0.22+22}" y="${20+275*0.15+4}" font-size="9" fill="#374151" font-family="Inter,sans-serif">${f1L}</text>
+    <text x="${40+420*0.22}" y="${20+275*0.15+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">1</text>
+    <text x="${40+420*0.22+22}" y="${20+275*0.15+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f1L}</text>
     <circle cx="${40+420*0.28}" cy="${20+275*0.45}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.28}" y="${20+275*0.45+4}" font-size="11" fill="white" font-family="Inter,sans-serif" font-weight="700" text-anchor="middle">2</text>
-    <text x="${40+420*0.28+22}" y="${20+275*0.45+4}" font-size="9" fill="#374151" font-family="Inter,sans-serif">${f2L}</text>
+    <text x="${40+420*0.28}" y="${20+275*0.45+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">2</text>
+    <text x="${40+420*0.28+22}" y="${20+275*0.45+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f2L}</text>
     <circle cx="${40+420*0.38}" cy="${20+275*0.65}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.38}" y="${20+275*0.65+4}" font-size="11" fill="white" font-family="Inter,sans-serif" font-weight="700" text-anchor="middle">3</text>
-    <text x="${40+420*0.38+22}" y="${20+275*0.65+4}" font-size="9" fill="#374151" font-family="Inter,sans-serif">${f3L}</text>
+    <text x="${40+420*0.38}" y="${20+275*0.65+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">3</text>
+    <text x="${40+420*0.38+22}" y="${20+275*0.65+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f3L}</text>
   </svg>
   ${pf(3)}
 </div>
@@ -338,8 +337,9 @@ body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6
   }
 
   const page = await browser.newPage()
-  await page.setContent(html, { waitUntil: 'networkidle0' })
-  await page.waitForSelector('#content-ready', { timeout: 15000 })
+  await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 20000 })
+  // Give fonts a moment to load but don't block on them
+  await new Promise(r => setTimeout(r, 2000))
   const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } })
   await browser.close()
   return Buffer.from(pdfBuffer)
