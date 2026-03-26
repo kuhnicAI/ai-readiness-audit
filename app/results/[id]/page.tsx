@@ -554,21 +554,40 @@ export default function ResultsPage() {
       {/* ═══ SECTION 3: THE THREE FIXES ═══ */}
       <FixesSection fixes={fixes} companyName={displayName} loading={reportLoading} />
 
-      {/* ═══ EMAIL CONFIRMATION ═══ */}
+      {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
       {report && !reportLoading && (
-        <section className="relative z-10 py-12 px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 rounded-full bg-[#f0fdf4] border border-[#bbf7d0] px-6 py-3"
+        <section className="relative z-10 py-16 px-6 text-center">
+          <button
+            onClick={async () => {
+              const res = await fetch('/api/audit/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  companyName: audit.company_name,
+                  contactName: audit.contact_name,
+                  role: audit.role ?? '',
+                  waste: w,
+                  reportRaw: report,
+                  businessType: audit.answers?.business_type ?? '',
+                  employeeCount: audit.answers?.employee_count ?? '',
+                  date: new Date(audit.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+                }),
+              })
+              if (res.ok) {
+                const blob = await res.blob()
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `AI-Audit-${displayName}.pdf`
+                a.click()
+                URL.revokeObjectURL(url)
+              }
+            }}
+            className="rounded-full bg-[#1a1a2e] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#2a2a3e] transition-colors cursor-pointer"
           >
-            <svg className="w-5 h-5 text-[#00c97d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-            </svg>
-            <span className="text-[14px] text-[#166534]">Your full report is on its way to <strong>{audit.contact_email}</strong></span>
-          </motion.div>
-          <p className="mt-3 text-[13px] text-[#999]">Check your inbox in a few minutes. If it doesn&rsquo;t arrive, check spam.</p>
+            Download Your Full Report (PDF)
+          </button>
+          <p className="mt-4 text-[13px] text-[#999]">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
         </section>
       )}
 

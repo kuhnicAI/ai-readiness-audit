@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateReport, parseReport } from '@/lib/generate-report'
+import { generateReport } from '@/lib/generate-report'
 import { scrapeWebsite } from '@/lib/scrape-website'
 import { sendReportEmail } from '@/lib/send-email'
-import { generatePdfPuppeteer } from '@/lib/pdf-puppeteer'
 import type { WasteCalculation } from '@/lib/waste'
 
-export const maxDuration = 60 // Allow up to 60s for scrape + Claude + PDF + email
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const { audit_id, answers, waste, companyName, contactName, contactEmail, role } = await req.json() as {
@@ -48,28 +47,7 @@ export async function POST(req: NextRequest) {
       } catch { /* non-blocking */ }
     }
 
-    // Generate PDF
-    let pdfBuffer: Buffer | undefined
-    try {
-      console.log('[PDF] Generating...')
-      const parsedReport = parseReport(report)
-      const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-      pdfBuffer = await generatePdfPuppeteer({
-        companyName,
-        contactName,
-        role,
-        waste,
-        report: parsedReport,
-        businessType: (answers.business_type as string) ?? '',
-        employeeCount: (answers.employee_count as string) ?? '',
-        date: dateStr,
-      })
-      console.log('[PDF] Generated:', pdfBuffer.length, 'bytes')
-    } catch (err) {
-      console.error('[PDF] Generation failed:', err)
-    }
-
-    // Send email with PDF attached
+    // Send simple email (no PDF attachment)
     if (contactEmail && process.env.RESEND_API_KEY) {
       try {
         console.log('[Email] Sending to:', contactEmail)
@@ -78,15 +56,11 @@ export async function POST(req: NextRequest) {
           contactName,
           companyName,
           waste,
-          report,
-          pdfBuffer,
         })
         console.log('[Email] Result:', JSON.stringify(emailResult))
       } catch (err) {
         console.error('[Email] Failed:', err)
       }
-    } else {
-      console.log('[Email] Skipped — contactEmail:', contactEmail, 'RESEND_API_KEY:', !!process.env.RESEND_API_KEY)
     }
 
     return NextResponse.json({ report })
