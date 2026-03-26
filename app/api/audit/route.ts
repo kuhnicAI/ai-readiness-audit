@@ -3,18 +3,18 @@ import { calculateWaste } from '@/lib/waste'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { answers, sdm_name, sdm_email } = body
+  const { answers, sdm_name, sdm_email, skip_scrape } = body
 
   if (!answers || typeof answers !== 'object') {
     return NextResponse.json({ error: 'Answers are required' }, { status: 400 })
   }
 
-  const companyName = (answers.company_name as string)?.trim()
-  const contactName = (answers.contact_name as string)?.trim()
   const contactEmail = (answers.contact_email as string)?.trim()
+  const companyName = (answers.company_name as string)?.trim() // This is now the website URL
+  const contactName = (answers.contact_name as string)?.trim() || contactEmail?.split('@')[0] || ''
 
-  if (!companyName || !contactName || !contactEmail) {
-    return NextResponse.json({ error: 'Company name, contact name, and email are required' }, { status: 400 })
+  if (!contactEmail || !companyName) {
+    return NextResponse.json({ error: 'Email and website are required' }, { status: 400 })
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
 
   const waste = calculateWaste(answers)
 
+  const isPersonalEmail = answers.personal_email === 'true'
+
   const row = {
     company_name: companyName,
     contact_name: contactName,
@@ -30,7 +32,10 @@ export async function POST(req: NextRequest) {
     role: answers.role ?? null,
     industry: answers.business_type ?? null,
     employee_count: answers.employee_count ?? null,
-    answers,
+    answers: {
+      ...answers,
+      personal_email: isPersonalEmail,
+    },
     scores: waste,
     overall_score: waste.revenueAtRisk,
     score_band: waste.revenueAtRisk > 500000 ? 'Critical' : waste.revenueAtRisk > 200000 ? 'High' : waste.revenueAtRisk > 50000 ? 'Moderate' : 'Low',
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
       businessType: answers.business_type ?? null,
       afterHours: answers.after_hours ?? null,
       urgency: answers.urgency ?? null,
+      personalEmail: isPersonalEmail,
     },
     sdm_name: sdm_name ?? null,
     sdm_email: sdm_email ?? null,
@@ -85,6 +91,7 @@ export async function POST(req: NextRequest) {
         employee_count: answers.employee_count ?? null,
         business_type: answers.business_type ?? null,
         urgency: answers.urgency ?? null,
+        personal_email: isPersonalEmail,
         answers,
         waste,
         sdm_name: sdm_name ?? null,
@@ -98,6 +105,20 @@ export async function POST(req: NextRequest) {
           .update({ webhook_sent: true, webhook_sent_at: new Date().toISOString() })
           .eq('id', data.id)
       }
+    }).catch(() => {})
+  }
+
+  // Scrape website in background (unless skip_scrape flag is set from timeout retry)
+  if (!skip_scrape && companyName) {
+    import('@/lib/scrape-website').then(({ scrapeWebsite }) => {
+      scrapeWebsite(companyName).then(async (content) => {
+        if (content) {
+          await supabaseAdmin
+            .from('audit_responses')
+            .update({ website_content: content })
+            .eq('id', data.id)
+        }
+      }).catch(() => {})
     }).catch(() => {})
   }
 

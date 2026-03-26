@@ -55,7 +55,7 @@ UK English throughout. Spellings: organisation not organization, recognised not 
 Here is what you know about this business:
 
 Business type: ${answers.business_type ?? 'Not specified'}
-Daily inbound calls: ${answers.daily_calls ?? 'Not specified'}
+Weekly inbound calls: ${answers.weekly_inbound ?? 'Not specified'}
 Missed call rate: ${answers.missed_rate ?? 'Not specified'}
 Conversion rate: ${answers.conversion_rate ?? 'Not specified'}
 Client value: ${answers.client_value ?? 'Not specified'}

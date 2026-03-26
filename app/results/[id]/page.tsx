@@ -481,6 +481,7 @@ export default function ResultsPage() {
   }
 
   const w = audit.scores
+  const m = w.methodology
   const fixes = report ? parseFixes(report) : []
   const displayName = formatCompanyName(audit.company_name)
   const weeklyLoss = Math.round(w.totalWaste / 52 / 100) * 100
@@ -559,7 +560,7 @@ export default function ResultsPage() {
         </motion.p>
 
         <motion.div
-          className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full mx-auto"
+          className={`mt-14 grid grid-cols-1 gap-6 max-w-3xl w-full mx-auto ${w.showNetOpportunity && !w.consistencyError ? 'sm:grid-cols-3' : 'sm:grid-cols-2 max-w-2xl'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.6 }}
@@ -570,13 +571,15 @@ export default function ResultsPage() {
           </div>
           <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
             <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.receptionistCost)}</p>
-            <p className="mt-2 text-[14px] text-[#999]">Current annual cost of human call handling</p>
-            <p className="mt-1 text-[11px] text-[#bbb]">Based on UK average</p>
+            <p className="mt-2 text-[14px] text-[#999]">Estimated annual cost of human call handling</p>
+            <p className="mt-1 text-[11px] text-[#bbb]">Based on UK average salary</p>
           </div>
-          <div className="text-center rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6">
-            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.netOpportunity)}</p>
-            <p className="mt-2 text-[14px] text-[#999]">Estimated annual upside from switching to AI voice</p>
-          </div>
+          {w.showNetOpportunity && !w.consistencyError && (
+            <div className="text-center rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6">
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.netOpportunity)}</p>
+              <p className="mt-2 text-[14px] text-[#999]">Estimated annual upside of switching to AI voice</p>
+            </div>
+          )}
         </motion.div>
 
         <motion.p
@@ -592,9 +595,9 @@ export default function ResultsPage() {
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
 
-      {/* ═══ SECTION 2: WHY THIS NUMBER IS REAL ═══ */}
+      {/* ═══ SECTION 2: HOW WE CALCULATED THIS ═══ */}
       <section className="relative z-10 py-24 px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <motion.p
             className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#bbb] mb-10 text-center"
             initial={{ opacity: 0 }}
@@ -605,37 +608,63 @@ export default function ResultsPage() {
             How we calculated this
           </motion.p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Missed calls</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{w.missedCallsAnnual.toLocaleString('en-GB')}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
-              <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`${w.dailyCalls} calls/day. ${Math.round(w.missedRate * 100)}% missed. ${Math.round(w.missedCallsPerDay)} missed calls every day, ${w.missedCallsAnnual.toLocaleString('en-GB')} per year.`)}
-              </p>
-            </motion.div>
+          <motion.div
+            className="rounded-2xl bg-white border border-[#eee] p-8 md:p-10 shadow-sm"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="space-y-4 text-[15px] text-[#444] font-mono leading-[1.8]">
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Daily calls received</span>
+                <span className="font-semibold text-[#1a1a2e]">{m.dailyCallsReceived}</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Missed or unanswered</span>
+                <span className="font-semibold text-[#1a1a2e]">{m.missedPercent}% = {m.missedCallsPerDay} calls per day{w.missedRateAssumed ? ' *' : ''}</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Annual missed calls</span>
+                <span className="font-semibold text-[#1a1a2e]">{m.annualMissedCalls.toLocaleString('en-GB')}</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Converted to clients at {m.conversionPercent}%{w.conversionRateAssumed ? ' *' : ''}</span>
+                <span className="font-semibold text-[#1a1a2e]">{m.lostClientsPerYear} lost clients per year</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Average client value</span>
+                <span className="font-semibold text-[#1a1a2e]">{fmt(m.avgClientValue)}</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">Base revenue at risk</span>
+                <span className="font-semibold text-[#1a1a2e]">{fmt(m.baseRevenueAtRisk)}</span>
+              </div>
+              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                <span className="text-[#888]">After hours adjustment ({m.afterHoursMultiplier}x)</span>
+                <span className="font-semibold text-[#1a1a2e]">{fmt(Math.round(m.baseRevenueAtRisk * m.afterHoursMultiplier))}</span>
+              </div>
+              <div className="flex justify-between pt-2">
+                <span className="font-bold text-[#1a1a2e]">Total annual revenue at risk</span>
+                <span className="font-bold text-[#00D084] text-[17px]">{fmt(m.adjustedRevenueAtRisk)}</span>
+              </div>
+            </div>
 
-            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Lost revenue</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.revenueAtRisk)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
-              <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`${w.lostConversionsAnnual} lost conversions at ${fmt(w.clientValue)} each. ${Math.round(w.conversionRate * 100)}% conversion rate. ${w.afterHoursMultiplier > 1 ? `After-hours multiplier: ${w.afterHoursMultiplier}x.` : ''}`)}
+            {(w.missedRateAssumed || w.conversionRateAssumed) && (
+              <p className="mt-6 text-[12px] text-[#999]">
+                * Assumed value — you selected &ldquo;Not sure&rdquo; or did not answer this question.
+                {w.missedRateAssumed ? ' Missed rate defaulted to 20%.' : ''}
+                {w.conversionRateAssumed ? ' Conversion rate defaulted to 15%.' : ''}
               </p>
-            </motion.div>
+            )}
 
-            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Net opportunity</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.netOpportunity)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
-              <p className="text-[15px] text-[#666] leading-[1.7]">
-                {fmt(w.revenueAtRisk)} recovered + {fmt(w.receptionistCost)} receptionist cost - {fmt(w.voiceAgentCost)} voice agent cost.
-              </p>
-            </motion.div>
-          </div>
+            {m.capApplied && (
+              <p className="mt-4 text-[12px] text-[#d97706]">{w.capReason}</p>
+            )}
+          </motion.div>
 
-          {w.wasCapped && (
-            <p className="mt-6 text-[12px] text-[#d97706] text-center">{w.capReason}</p>
-          )}
           <p className="mt-4 text-[13px] text-[#bbb] text-center">
-            All figures use conservative midpoints and are capped at realistic bounds for your business size and industry. Your actual exposure may be higher.
+            All figures use conservative midpoints derived from your inputs. Every assumption is labelled above.
           </p>
         </div>
       </section>

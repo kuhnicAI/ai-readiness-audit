@@ -4,14 +4,34 @@ import { useState, useCallback, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
+const PERSONAL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.co.uk',
+  'outlook.com', 'outlook.co.uk', 'yahoo.com', 'yahoo.co.uk',
+  'icloud.com', 'live.com', 'live.co.uk', 'me.com',
+  'btinternet.com', 'sky.com', 'virginmedia.com', 'talktalk.net', 'aol.com',
+])
+
+function isPersonalEmail(email: string): boolean {
+  const domain = email.trim().toLowerCase().split('@')[1]
+  return domain ? PERSONAL_DOMAINS.has(domain) : false
+}
+
+function normaliseWebsite(raw: string): string {
+  let url = raw.trim()
+  if (!url) return ''
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url
+  }
+  return url
+}
+
 interface Screen {
   id: string
   heading: string
   subtext?: string
-  type: 'intro' | 'tiles' | 'form' | 'mode_select'
+  type: 'intro' | 'tiles' | 'contact' | 'mode_select'
   options?: string[]
   note?: string
-  fields?: { id: string; label: string; type: 'text' | 'email' | 'select'; options?: string[]; placeholder?: string }[]
 }
 
 const SCREENS: Screen[] = [
@@ -35,10 +55,10 @@ const SCREENS: Screen[] = [
     ],
   },
   {
-    id: 'daily_calls',
-    heading: 'How many inbound calls do you receive on a typical day?',
+    id: 'weekly_inbound',
+    heading: 'How many inbound calls does your business receive in a typical week?',
     type: 'tiles',
-    options: ['Under 10', '10 to 30', '30 to 80', '80 to 200', 'Over 200'],
+    options: ['Under 20 per week', '20 to 50 per week', '50 to 150 per week', '150 to 500 per week', 'Over 500 per week'],
   },
   {
     id: 'missed_rate',
@@ -81,16 +101,8 @@ const SCREENS: Screen[] = [
   },
   {
     id: 'contact',
-    heading: 'Almost there.',
-    subtext: "We'll send your personalised voice agent report to this email within minutes.",
-    type: 'form',
-    fields: [
-      { id: 'contact_name', label: 'Your name', type: 'text', placeholder: 'John Smith' },
-      { id: 'contact_email', label: 'Work email', type: 'email', placeholder: 'john@yourcompany.co.uk' },
-      { id: 'company_name', label: 'Your website', type: 'text', placeholder: 'www.yourcompany.co.uk' },
-      { id: 'role', label: 'Your role', type: 'select', options: ['Founder / CEO', 'Director', 'Manager', 'IT Lead', 'Operations', 'Other'] },
-      { id: 'employee_count', label: 'Company size', type: 'select', options: ['1 to 10', '11 to 50', '51 to 200', '201 to 500', '500+'] },
-    ],
+    heading: 'Where should we send your report?',
+    type: 'contact',
   },
 ]
 
@@ -124,6 +136,15 @@ function AuditForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [direction, setDirection] = useState(1)
+  const [disqualified, setDisqualified] = useState(false)
+
+  // Contact form state
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactWebsite, setContactWebsite] = useState('')
+  const [personalEmailWarning, setPersonalEmailWarning] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [websiteTouched, setWebsiteTouched] = useState(false)
+  const [submitAttempted, setSubmitAttempted] = useState(false)
 
   // Persist to sessionStorage
   useEffect(() => {
@@ -142,23 +163,52 @@ function AuditForm() {
 
   const [selectedMode, setSelectedMode] = useState<'form' | 'chat' | null>(null)
 
+  // Hide progress bar on disqualification and contact screens
+  const showProgressBar = !disqualified && screen?.id !== 'contact'
+
   const canProceed = (() => {
     if (screen.type === 'mode_select') return !!selectedMode
     if (screen.type === 'intro') return true
     if (screen.type === 'tiles') return !!answers[screen.id]
-    if (screen.type === 'form') {
-      return screen.fields?.every(f => {
-        const val = answers[f.id]
-        return typeof val === 'string' && val.trim().length > 0
-      }) ?? false
+    if (screen.type === 'contact') {
+      return contactEmail.trim().length > 0 && contactWebsite.trim().length > 0
     }
     return false
   })()
 
   const navigatingRef = useRef(false)
 
+  // Disqualification check: after missed_rate (screen index 3) is answered
+  const checkDisqualification = useCallback((currentAnswers: Record<string, string>) => {
+    const weeklyInbound = currentAnswers.weekly_inbound
+    const missedRate = currentAnswers.missed_rate
+    if (weeklyInbound === 'Under 20 per week' && missedRate === 'Almost none') {
+      // Log disqualification to database
+      fetch('/api/audit/disqualify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_type: currentAnswers.business_type ?? null,
+          weekly_inbound: weeklyInbound,
+          missed_rate: missedRate,
+        }),
+      }).catch(() => {})
+      return true
+    }
+    return false
+  }, [])
+
   const handleNext = () => {
     if (navigatingRef.current) return
+
+    // After missed_rate is answered (screen index 3), run disqualification check
+    if (step === 3 && screen.id === 'missed_rate') {
+      if (checkDisqualification(answers)) {
+        setDisqualified(true)
+        return
+      }
+    }
+
     if (step < totalSteps - 1) {
       navigatingRef.current = true
       setDirection(1)
@@ -177,38 +227,74 @@ function AuditForm() {
     }
   }
 
+  const handleStartOver = () => {
+    sessionStorage.removeItem('audit_form')
+    setStep(0)
+    setAnswers({})
+    setDisqualified(false)
+    setSelectedMode(null)
+    setContactEmail('')
+    setContactWebsite('')
+    setPersonalEmailWarning(false)
+    setEmailTouched(false)
+    setWebsiteTouched(false)
+    setSubmitAttempted(false)
+    setError('')
+  }
+
   const [loadingMessage, setLoadingMessage] = useState('')
 
   const handleSubmit = async () => {
+    setSubmitAttempted(true)
+    if (!contactEmail.trim() || !contactWebsite.trim()) return
+
     setSubmitting(true)
     setError('')
+    setLoadingMessage('Generating your report')
 
-    const messages = [
-      'Crunching your numbers...',
-      'Analysing your answers against industry benchmarks...',
-      'Building your personalised report...',
-    ]
+    const isPersonal = isPersonalEmail(contactEmail)
+    const normalisedWebsite = normaliseWebsite(contactWebsite)
 
-    setLoadingMessage(messages[0])
-    const t1 = setTimeout(() => setLoadingMessage(messages[1]), 1200)
-    const t2 = setTimeout(() => setLoadingMessage(messages[2]), 2400)
+    const fullAnswers = {
+      ...answers,
+      contact_email: contactEmail.trim(),
+      company_name: normalisedWebsite,
+      contact_name: contactEmail.trim().split('@')[0],
+      personal_email: isPersonal ? 'true' : 'false',
+    }
 
     try {
-      const [res] = await Promise.all([
-        fetch('/api/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answers, sdm_name: sdmName, sdm_email: sdmEmail }),
-        }),
-        new Promise(resolve => setTimeout(resolve, 3500)),
-      ])
-      const data = await (res as Response).json()
-      if (!(res as Response).ok) throw new Error(data.error ?? 'Failed to submit')
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 8000)
+
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: fullAnswers, sdm_name: sdmName, sdm_email: sdmEmail }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to submit')
       sessionStorage.removeItem('audit_form')
       router.push(`/results/${data.id}`)
     } catch (err: unknown) {
-      clearTimeout(t1)
-      clearTimeout(t2)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // Timeout — try once more without abort, API will handle scrape timeout internally
+        try {
+          const res = await fetch('/api/audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: fullAnswers, sdm_name: sdmName, sdm_email: sdmEmail, skip_scrape: true }),
+          })
+          const data = await res.json()
+          if (res.ok) {
+            sessionStorage.removeItem('audit_form')
+            router.push(`/results/${data.id}`)
+            return
+          }
+        } catch {}
+      }
       const message = err instanceof Error ? err.message : 'Something went wrong'
       setError(message)
       setSubmitting(false)
@@ -224,6 +310,38 @@ function AuditForm() {
     exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   }
 
+  // ── Disqualification screen ──
+  if (disqualified) {
+    return (
+      <div className="min-h-screen bg-white text-[#1a1a2e] flex items-center justify-center">
+        <div className="max-w-[480px] mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-[clamp(1.8rem,4vw,2.6rem)] font-serif text-[#1a1a2e] leading-snug">
+              This probably is not for you right now.
+            </h1>
+            <p className="mt-6 text-[16px] text-[#888] leading-[1.7]">
+              This calculator is built for businesses handling a solid volume of inbound calls where missed or
+              unanswered calls are a real problem. Based on your answers, that does not sound like your situation yet.
+            </p>
+            <p className="mt-4 text-[14px] text-[#aaa] leading-[1.7]">
+              If your call volume is growing or you think you may have misread a question, you can start again below.
+            </p>
+            <button
+              onClick={handleStartOver}
+              className="mt-10 rounded-full bg-[#00D084] px-8 py-4 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors"
+            >
+              Start again
+            </button>
+          </motion.div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white text-[#1a1a2e]">
       {/* Suspense loading overlay */}
@@ -237,24 +355,18 @@ function AuditForm() {
             transition={{ duration: 0.3 }}
           >
             <div className="w-10 h-10 border-[3px] border-[#eee] border-t-[#00D084] rounded-full animate-spin mb-8" />
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={loadingMessage}
-                className="text-[18px] text-[#999] font-serif"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                {loadingMessage}
-              </motion.p>
-            </AnimatePresence>
+            <p className="text-[18px] text-[#999] font-serif">
+              {loadingMessage}<span className="animate-pulse">...</span>
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[#eee]">
-        <div className="h-full bg-[#00D084] transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
-      </div>
+
+      {showProgressBar && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[#eee]">
+          <div className="h-full bg-[#00D084] transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+        </div>
+      )}
 
       <div className="max-w-3xl mx-auto px-6 pt-16 pb-24 min-h-screen flex flex-col justify-center">
         <AnimatePresence mode="wait" custom={direction}>
@@ -360,67 +472,106 @@ function AuditForm() {
               </div>
             )}
 
-            {screen.type === 'form' && (
-              <div className="mt-8 space-y-5">
-                {screen.fields?.map(field => (
-                  <div key={field.id}>
-                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">{field.label}</label>
-                    {field.type === 'select' ? (
-                      <select
-                        value={answers[field.id] ?? ''}
-                        onChange={e => setAnswer(field.id, e.target.value)}
-                        className="w-full rounded-xl border border-[#e5e5e5] bg-white px-4 py-3 text-[15px] text-[#1a1a2e] focus:outline-none focus:border-[#00D084] transition-colors"
-                      >
-                        <option value="">Select...</option>
-                        {field.options?.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type={field.type}
-                        value={answers[field.id] ?? ''}
-                        onChange={e => setAnswer(field.id, e.target.value)}
-                        placeholder={field.placeholder}
-                        className="w-full rounded-xl border border-[#e5e5e5] bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none focus:border-[#00D084] transition-colors"
-                      />
+            {screen.type === 'contact' && (
+              <div className="mt-2">
+                <p className="text-[15px] text-[#888]">
+                  We&rsquo;ll look up your business before writing the report so the findings are specific to you, not a generic template.
+                </p>
+                <p className="mt-2 text-[13px] text-[#aaa]">Expect it within 10 minutes.</p>
+
+                <div className="mt-8 space-y-4">
+                  {/* Email field */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Work email</label>
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={e => setContactEmail(e.target.value)}
+                      onBlur={() => {
+                        setEmailTouched(true)
+                        setPersonalEmailWarning(isPersonalEmail(contactEmail))
+                      }}
+                      placeholder="you@yourcompany.co.uk"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                        submitAttempted && !contactEmail.trim()
+                          ? 'border-red-400 focus:border-red-400'
+                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                      }`}
+                    />
+                    {submitAttempted && !contactEmail.trim() && (
+                      <p className="mt-1.5 text-[13px] text-red-500">We need this to generate your report.</p>
+                    )}
+                    {emailTouched && personalEmailWarning && contactEmail.trim() && (
+                      <p className="mt-1.5 text-[13px] text-amber-600">
+                        Looks like a personal email. Please use your work email if you have one, or add your website below so we can find your business.
+                      </p>
                     )}
                   </div>
-                ))}
+
+                  {/* Website field */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Your website</label>
+                    <input
+                      type="text"
+                      value={contactWebsite}
+                      onChange={e => setContactWebsite(e.target.value)}
+                      onBlur={() => setWebsiteTouched(true)}
+                      placeholder="www.yourbusiness.co.uk"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                        submitAttempted && !contactWebsite.trim()
+                          ? 'border-red-400 focus:border-red-400'
+                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                      }`}
+                    />
+                    {submitAttempted && !contactWebsite.trim() && (
+                      <p className="mt-1.5 text-[13px] text-red-500">We need this to generate your report.</p>
+                    )}
+                    <p className="mt-1.5 text-[12px] text-[#aaa]">
+                      We use this to personalise your report. No website? Paste your Google Business or LinkedIn company page URL instead.
+                    </p>
+                  </div>
+
+                  {/* Submit button */}
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || !canProceed}
+                    className={`w-full rounded-full py-3.5 text-[15px] font-semibold transition-colors ${
+                      canProceed
+                        ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer'
+                        : 'bg-[#e5e5e5] text-[#999] cursor-not-allowed'
+                    } disabled:opacity-60`}
+                  >
+                    {submitting ? (
+                      <span>Generating your report<span className="animate-pulse">...</span></span>
+                    ) : 'Show Me My Number'}
+                  </button>
+
+                  <p className="text-[12px] text-[#aaa] text-center">We do not share your details with anyone. Ever.</p>
+                </div>
               </div>
             )}
 
             {error && <p className="mt-4 text-[13px] text-red-500">{error}</p>}
 
-            {screen.type !== 'intro' && screen.type !== 'mode_select' && <div className="mt-10 flex items-center justify-between">
+            {screen.type !== 'intro' && screen.type !== 'mode_select' && screen.type !== 'contact' && <div className="mt-10 flex items-center justify-between">
               {step > 0 ? (
                 <button onClick={handleBack} className="text-[14px] text-[#aaa] hover:text-[#1a1a2e] transition-colors">
                   &larr; Back
                 </button>
               ) : <div />}
 
-              {isLastStep ? (
-                <button
-                  onClick={handleSubmit}
-                  disabled={!canProceed || submitting}
-                  className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {submitting ? 'Calculating...' : 'Show Me My Number'}
-                </button>
-              ) : (
-                <button
-                  onClick={handleNext}
-                  disabled={!canProceed}
-                  className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Continue &nbsp;&rarr;
-                </button>
-              )}
+              <button
+                onClick={handleNext}
+                disabled={!canProceed}
+                className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Continue &nbsp;&rarr;
+              </button>
             </div>}
           </motion.div>
         </AnimatePresence>
 
-        {screen.type !== 'intro' && screen.type !== 'mode_select' && !isLastStep && <div className="mt-8 text-center">
+        {screen.type !== 'intro' && screen.type !== 'mode_select' && screen.type !== 'contact' && <div className="mt-8 text-center">
           <span className="text-[12px] text-[#bbb]">{step} of {totalSteps - 1}</span>
         </div>}
       </div>

@@ -13,7 +13,7 @@ At natural midpoints (roughly after questions 3 and 5), add a brief motivational
 
 You must collect ALL of these variables through conversation:
 1. businessType - what kind of business they run (law firm, medical/dental, home services, real estate, hospitality, other)
-2. dailyCalls - how many inbound calls per day
+2. dailyCalls - how many inbound calls per week (map to the weekly ranges below)
 3. missedRate - what percentage go unanswered or to voicemail
 4. conversionRate - what percentage of calls turn into customers/bookings
 5. clientValue - what a new customer is typically worth
@@ -27,7 +27,7 @@ AUDIT_COMPLETE
 {"businessType":"...","dailyCalls":"...","missedRate":"...","conversionRate":"...","clientValue":"...","afterHours":"...","urgency":"..."}
 
 The JSON values should match these option formats:
-- dailyCalls: "Under 10", "10 to 30", "30 to 80", "80 to 200", "Over 200"
+- dailyCalls: "Under 20 per week", "20 to 50 per week", "50 to 150 per week", "150 to 500 per week", "Over 500 per week"
 - missedRate: "Almost none", "Around 10 to 20 percent", "Around a third", "More than half", "Not sure"
 - conversionRate: "Under 10%", "10 to 25%", "25 to 50%", "Over 50%", "Not sure"
 - clientValue: "Under £500", "£500 to £2,000", "£2,000 to £10,000", "Over £10,000"
