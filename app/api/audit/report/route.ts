@@ -45,19 +45,23 @@ export async function POST(req: NextRequest) {
       } catch { /* non-blocking */ }
     }
 
-    // Send email with report (non-blocking)
+    // Send email with report — must await on serverless or it gets killed
     if (contactEmail && process.env.RESEND_API_KEY) {
-      sendReportEmail({
-        to: contactEmail,
-        contactName,
-        companyName,
-        waste,
-        report,
-      }).then(result => {
-        console.log('Email sent:', result)
-      }).catch(err => {
-        console.error('Email send failed:', err)
-      })
+      try {
+        console.log('[Email] Sending to:', contactEmail, 'from: noreply@audit.kuhnic.ai')
+        const emailResult = await sendReportEmail({
+          to: contactEmail,
+          contactName,
+          companyName,
+          waste,
+          report,
+        })
+        console.log('[Email] Result:', JSON.stringify(emailResult))
+      } catch (err) {
+        console.error('[Email] Failed:', err)
+      }
+    } else {
+      console.log('[Email] Skipped — contactEmail:', contactEmail, 'RESEND_API_KEY:', !!process.env.RESEND_API_KEY)
     }
 
     return NextResponse.json({ report })
