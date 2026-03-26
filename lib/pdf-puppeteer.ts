@@ -201,7 +201,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
       <div class="calc-row bold"><span>Net annual opportunity</span><span>${fmt(w.netOpportunity)}</span></div>
     </div>
   </div>
-  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.revenueAtRisk)}.</strong> Combined with the receptionist cost saving, switching to an AI voice agent represents a net annual opportunity of ${fmt(w.netOpportunity)}. Most businesses recover implementation costs within 30 to 60 days.</div>
+  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.revenueAtRisk)}.</strong> Combined with the receptionist cost saving, switching to an AI voice agent represents a net annual opportunity of ${fmt(w.netOpportunity)}. Most businesses recover implementation costs within 30 to 60 days.${w.wasCapped ? `<br/><br/><span style="font-size:11px;color:#6b7280;">${esc(w.capReason)}</span>` : ''}</div>
+  <p class="muted" style="font-size:11px;margin-top:10px;">All figures use conservative midpoints and are capped at realistic bounds for your business size and industry. Your actual exposure may be higher.</p>
   <svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:16px;">
     <rect width="480" height="320" fill="white" rx="8"/>
     <rect x="40" y="20" width="200" height="130" fill="rgba(0,201,125,0.08)" rx="4"/>

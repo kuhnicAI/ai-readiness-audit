@@ -630,6 +630,13 @@ export default function ResultsPage() {
               </p>
             </motion.div>
           </div>
+
+          {w.wasCapped && (
+            <p className="mt-6 text-[12px] text-[#d97706] text-center">{w.capReason}</p>
+          )}
+          <p className="mt-4 text-[13px] text-[#bbb] text-center">
+            All figures use conservative midpoints and are capped at realistic bounds for your business size and industry. Your actual exposure may be higher.
+          </p>
         </div>
       </section>
 
