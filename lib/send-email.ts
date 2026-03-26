@@ -78,13 +78,27 @@ kuhnic.ai`
 </body>
 </html>`
 
-  const result = await resend.emails.send({
+  const emailPayload: Record<string, unknown> = {
     from: 'Kuhnic AI <noreply@audit.kuhnic.ai>',
     to,
     subject: `Your audit report for ${displayName} is ready`,
     html,
     text: textContent,
-  })
+  }
+
+  // Attach PDF if available
+  if (input.pdfBuffer) {
+    emailPayload.attachments = [
+      {
+        filename: `AI-Audit-${displayName.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+        content: input.pdfBuffer,
+      },
+    ]
+    console.log('[Email] PDF attached:', input.pdfBuffer.length, 'bytes')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await resend.emails.send(emailPayload as any)
 
   return result
 }

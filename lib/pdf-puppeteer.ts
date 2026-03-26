@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer'
+import puppeteerCore from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 import fs from 'fs'
 import path from 'path'
 import type { WasteCalculation } from './waste'
@@ -311,10 +312,27 @@ body{font-family:'Inter',sans-serif;color:#0a0a0a;font-size:13px;line-height:1.6
 <div id="content-ready"></div>
 </body></html>`
 
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME
+
+  let browser
+  if (isVercel) {
+    // Serverless: use puppeteer-core + @sparticuz/chromium
+    const executablePath = await chromium.executablePath()
+    browser = await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: { width: 1280, height: 720 },
+      executablePath,
+      headless: true,
+    })
+  } else {
+    // Local dev: use full puppeteer
+    const puppeteer = (await import('puppeteer')).default
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  }
+
   const page = await browser.newPage()
   await page.setContent(html, { waitUntil: 'networkidle0' })
-  await page.waitForSelector('#content-ready', { timeout: 10000 })
+  await page.waitForSelector('#content-ready', { timeout: 15000 })
   const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } })
   await browser.close()
   return Buffer.from(pdfBuffer)
