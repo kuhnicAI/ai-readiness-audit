@@ -244,7 +244,7 @@ export default function HomePage() {
           </div>
           <div>
             <p className="text-[clamp(2rem,4vw,3.2rem)] font-serif text-[#1a1a2e]">
-              <Counter end={3} suffix=" min" delay={1000} />
+              <Counter end={60} suffix="s" delay={1000} />
             </p>
             <p className="mt-1 text-[11px] text-[#999] uppercase tracking-wider">To complete</p>
           </div>
