@@ -372,24 +372,44 @@ function PdfDownloadSection({ audit, waste, report, displayName }: { audit: Audi
   }
 
   return (
-    <section className="relative z-10 py-16 px-6 text-center">
-      <button
-        onClick={handleDownload}
-        disabled={pdfLoading}
-        className="rounded-full bg-[#1a1a2e] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#2a2a3e] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+    <section className="relative z-10 py-12 px-6 max-w-4xl mx-auto">
+      <motion.div
+        className="rounded-2xl bg-[#1a1a2e] p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
       >
-        {pdfLoading ? (
-          <span className="flex items-center gap-2">
-            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Generating PDF...
-          </span>
-        ) : 'Download Your Full Report (PDF)'}
-      </button>
-      {pdfError && <p className="mt-3 text-[13px] text-red-500">{pdfError}</p>}
-      <p className="mt-4 text-[13px] text-[#999]">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
+        {/* Icon */}
+        <div className="shrink-0 w-14 h-14 rounded-2xl bg-[#00c97d]/20 flex items-center justify-center">
+          <svg className="w-7 h-7 text-[#00c97d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        </div>
+        {/* Text */}
+        <div className="flex-1 text-center md:text-left">
+          <h3 className="text-[20px] font-bold text-white">Your full report is ready</h3>
+          <p className="text-[14px] text-[#9ca3af] mt-1">6-page PDF with executive summary, three fixes ranked by ROI, and a 90-day roadmap.</p>
+        </div>
+        {/* Button */}
+        <button
+          onClick={handleDownload}
+          disabled={pdfLoading}
+          className="shrink-0 rounded-full bg-[#00c97d] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00b873] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait shadow-lg shadow-[#00c97d]/20"
+        >
+          {pdfLoading ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Generating...
+            </span>
+          ) : 'Download PDF'}
+        </button>
+      </motion.div>
+      {pdfError && <p className="mt-3 text-[13px] text-red-500 text-center">{pdfError}</p>}
+      <p className="mt-4 text-[13px] text-[#999] text-center">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
     </section>
   )
 }
