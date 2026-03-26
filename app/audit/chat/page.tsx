@@ -44,19 +44,31 @@ function ChatAudit() {
   const sdmName = searchParams.get('sdm') ?? undefined
   const sdmEmail = searchParams.get('sdm_email') ?? undefined
 
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inlineOptions, setInlineOptions] = useState<string[]>([])
-  const [showInlineOptions, setShowInlineOptions] = useState(false)
+  // Restore from sessionStorage
+  const savedState = typeof window !== 'undefined' ? sessionStorage.getItem('audit_chat') : null
+  const restored = savedState ? JSON.parse(savedState) : null
+
+  const [messages, setMessages] = useState<Message[]>(restored?.messages ?? [])
+  const [inlineOptions, setInlineOptions] = useState<string[]>(restored?.options ?? [])
+  const [showInlineOptions, setShowInlineOptions] = useState(!!restored?.options?.length)
   const [textInput, setTextInput] = useState('')
-  const [isTextQuestion, setIsTextQuestion] = useState(false)
+  const [isTextQuestion, setIsTextQuestion] = useState(restored?.isTextQuestion ?? false)
   const [loading, setLoading] = useState(false)
   const [streaming, setStreaming] = useState(false)
-  const [collected, setCollected] = useState<Record<string, string> | null>(null)
-  const [contactForm, setContactForm] = useState({ contact_name: '', contact_email: '', company_name: '' })
+  const [collected, setCollected] = useState<Record<string, string> | null>(restored?.collected ?? null)
+  const [contactForm, setContactForm] = useState(restored?.contactForm ?? { contact_name: '', contact_email: '', company_name: '' })
   const [submitting, setSubmitting] = useState(false)
-  const [progress, setProgress] = useState(0)
+  const [progress, setProgress] = useState(restored?.progress ?? 0)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const initRef = useRef(false)
+  const initRef = useRef(!!restored)
+
+  // Persist to sessionStorage on every change
+  useEffect(() => {
+    if (messages.length === 0) return
+    sessionStorage.setItem('audit_chat', JSON.stringify({
+      messages, options: inlineOptions, isTextQuestion, collected, contactForm, progress,
+    }))
+  }, [messages, inlineOptions, isTextQuestion, collected, contactForm, progress])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -68,7 +80,7 @@ function ChatAudit() {
     setInlineOptions([])
     setIsTextQuestion(false)
 
-    await new Promise(r => setTimeout(r, 300 + Math.random() * 200))
+    await new Promise(r => setTimeout(r, 150 + Math.random() * 150))
 
     try {
       const res = await fetch('/api/audit/chat', {
@@ -166,7 +178,10 @@ function ChatAudit() {
         body: JSON.stringify({ answers, sdm_name: sdmName, sdm_email: sdmEmail }),
       })
       const data = await res.json()
-      if (res.ok) router.push(`/results/${data.id}`)
+      if (res.ok) {
+        sessionStorage.removeItem('audit_chat')
+        router.push(`/results/${data.id}`)
+      }
     } catch {}
     setSubmitting(false)
   }
@@ -263,13 +278,13 @@ function ChatAudit() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="max-w-[480px] space-y-3">
                 <p className="text-[14px] text-[#9ca3af] mb-2">Where should we send your report?</p>
                 <input type="text" placeholder="Your name" value={contactForm.contact_name}
-                  onChange={e => setContactForm(f => ({ ...f, contact_name: e.target.value }))}
+                  onChange={e => setContactForm((f: { contact_name: string; contact_email: string; company_name: string }) => ({ ...f, contact_name: e.target.value }))}
                   className="w-full border-b border-[#e5e7eb] bg-transparent px-1 py-3 text-[16px] text-[#111] placeholder-[#9ca3af] focus:outline-none focus:border-[#00c97d] transition-colors" />
                 <input type="email" placeholder="Work email" value={contactForm.contact_email}
-                  onChange={e => setContactForm(f => ({ ...f, contact_email: e.target.value }))}
+                  onChange={e => setContactForm((f: { contact_name: string; contact_email: string; company_name: string }) => ({ ...f, contact_email: e.target.value }))}
                   className="w-full border-b border-[#e5e7eb] bg-transparent px-1 py-3 text-[16px] text-[#111] placeholder-[#9ca3af] focus:outline-none focus:border-[#00c97d] transition-colors" />
                 <input type="text" placeholder="Your website (e.g. company.co.uk)" value={contactForm.company_name}
-                  onChange={e => setContactForm(f => ({ ...f, company_name: e.target.value }))}
+                  onChange={e => setContactForm((f: { contact_name: string; contact_email: string; company_name: string }) => ({ ...f, company_name: e.target.value }))}
                   className="w-full border-b border-[#e5e7eb] bg-transparent px-1 py-3 text-[16px] text-[#111] placeholder-[#9ca3af] focus:outline-none focus:border-[#00c97d] transition-colors" />
                 <button onClick={handleSubmitContact} disabled={submitting || !contactReady}
                   className="w-full h-[52px] rounded-lg bg-[#00c97d] text-[15px] font-medium text-white hover:bg-[#00b873] transition-colors disabled:bg-[#e5e7eb] disabled:text-[#9ca3af]">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, Suspense } from 'react'
+import { useState, useCallback, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -170,11 +170,22 @@ function AuditForm() {
   const sdmName = searchParams.get('sdm') ?? undefined
   const sdmEmail = searchParams.get('sdm_email') ?? undefined
 
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  // Restore from sessionStorage
+  const savedForm = typeof window !== 'undefined' ? sessionStorage.getItem('audit_form') : null
+  const restoredForm = savedForm ? JSON.parse(savedForm) : null
+
+  const [step, setStep] = useState<number>(restoredForm?.step ?? 0)
+  const [answers, setAnswers] = useState<Record<string, string>>(restoredForm?.answers ?? {})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [direction, setDirection] = useState(1)
+
+  // Persist to sessionStorage
+  useEffect(() => {
+    if (step > 0 || Object.keys(answers).length > 0) {
+      sessionStorage.setItem('audit_form', JSON.stringify({ step, answers }))
+    }
+  }, [step, answers])
 
   const screen = SCREENS[step]
   const totalSteps = SCREENS.length
@@ -248,6 +259,7 @@ function AuditForm() {
       ])
       const data = await (res as Response).json()
       if (!(res as Response).ok) throw new Error(data.error ?? 'Failed to submit')
+      sessionStorage.removeItem('audit_form')
       router.push(`/results/${data.id}`)
     } catch (err: unknown) {
       clearTimeout(t1)
