@@ -168,9 +168,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
   <p style="margin-bottom:14px;font-size:13px;line-height:1.7;color:#374151;">${esc(r.executiveSummaryP3)}</p>
   <div class="divider"></div>
   <div class="metric-row">
-    <div class="metric-box"><div class="ml">Missed call revenue</div><div class="mv">${fmt(w.missedRevenueAnnual)}</div><div class="md">Annual revenue at risk from missed calls</div></div>
+    <div class="metric-box"><div class="ml">Missed call revenue</div><div class="mv">${fmt(w.revenueAtRisk)}</div><div class="md">Annual revenue at risk from missed calls</div></div>
     <div class="metric-box"><div class="ml">Current receptionist cost</div><div class="mv">${fmt(w.receptionistCost)}</div><div class="md">Based on UK average (£28k/yr)</div></div>
-    <div class="metric-box"><div class="ml">Estimated saving</div><div class="mv">${fmt(w.estimatedSaving)}</div><div class="md">With AI voice agent (£3k to £6k/yr)</div></div>
+    <div class="metric-box"><div class="ml">Estimated saving</div><div class="mv">${fmt(w.netOpportunity)}</div><div class="md">With AI voice agent (£3k to £6k/yr)</div></div>
   </div>
   ${pf(2)}
 </div>
@@ -186,20 +186,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
       <div class="calc-row"><span>Missed or voicemail rate</span><span>${Math.round(w.missedRate*100)}%${w.missedRateAssumed?' (est.)':''}</span></div>
       <div class="calc-row"><span>Missed calls per day</span><span>${Math.round(w.missedCallsPerDay)}</span></div>
       <div class="calc-row"><span>Missed calls per year</span><span>${w.missedCallsAnnual.toLocaleString('en-GB')}</span></div>
-      <div class="calc-row"><span>Assumed conversion rate</span><span>${Math.round(w.conversionRate*100)}%</span></div>
+      <div class="calc-row"><span>Conversion rate</span><span>${Math.round(w.conversionRate*100)}%${w.conversionRateAssumed?' (est.)':''}</span></div>
+      <div class="calc-row"><span>Lost conversions per year</span><span>${w.lostConversionsAnnual}</span></div>
       <div class="calc-row"><span>Average client value</span><span>${fmt(w.clientValue)}</span></div>
-      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.missedRevenueAnnual)}</span></div>
+      <div class="calc-row"><span>After-hours multiplier</span><span>${w.afterHoursMultiplier}x</span></div>
+      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.revenueAtRisk)}</span></div>
     </div>
     <div>
       <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Cost comparison</h3>
       <div class="calc-row"><span>Current receptionist cost</span><span>£28,000/yr</span></div>
       <div class="calc-row"><span style="font-size:10px;color:#9ca3af;">Based on UK average fully loaded cost</span><span></span></div>
-      <div class="calc-row"><span>AI voice agent cost</span><span>£3,000 to £6,000/yr</span></div>
-      <div class="calc-row"><span>Annual receptionist saving</span><span>${fmt(w.receptionistCost - w.voiceAgentCost)}</span></div>
-      <div class="calc-row bold"><span>Total estimated saving</span><span>${fmt(w.estimatedSaving)}</span></div>
+      <div class="calc-row"><span>AI voice agent cost</span><span>£4,500/yr</span></div>
+      <div class="calc-row"><span>Receptionist saving</span><span>${fmt(w.receptionistCost - w.voiceAgentCost)}</span></div>
+      <div class="calc-row bold"><span>Net annual opportunity</span><span>${fmt(w.netOpportunity)}</span></div>
     </div>
   </div>
-  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.missedRevenueAnnual)}.</strong> Combined with the receptionist cost saving, an AI voice agent represents a net benefit of ${fmt(w.estimatedSaving)} per year. Most businesses recover implementation costs within 30 to 60 days.</div>
+  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.revenueAtRisk)}.</strong> Combined with the receptionist cost saving, switching to an AI voice agent represents a net annual opportunity of ${fmt(w.netOpportunity)}. Most businesses recover implementation costs within 30 to 60 days.</div>
   <svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:16px;">
     <rect width="480" height="320" fill="white" rx="8"/>
     <rect x="40" y="20" width="200" height="130" fill="rgba(0,201,125,0.08)" rx="4"/>

@@ -47,8 +47,14 @@ const SCREENS: Screen[] = [
     options: ['Almost none', 'Around 10 to 20 percent', 'Around a third', 'More than half', 'Not sure'],
   },
   {
+    id: 'conversion_rate',
+    heading: 'Roughly what percentage of your inbound calls actually turn into a new customer, booking, or paid job?',
+    type: 'tiles',
+    options: ['Under 10%', '10 to 25%', '25 to 50%', 'Over 50%', 'Not sure'],
+  },
+  {
     id: 'client_value',
-    heading: 'What is a new customer or client typically worth to your business?',
+    heading: 'What is a typical new customer, client, or booked job worth to your business?',
     type: 'tiles',
     options: ['Under £500', '£500 to £2,000', '£2,000 to £10,000', 'Over £10,000'],
   },

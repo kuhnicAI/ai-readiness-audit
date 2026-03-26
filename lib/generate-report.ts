@@ -55,16 +55,11 @@ UK English throughout. Spellings: organisation not organization, recognised not 
 Here is what you know about this business:
 
 Business type: ${answers.business_type ?? 'Not specified'}
-Weekly inbound calls or enquiries: ${answers.weekly_inbound ?? 'Not specified'}
-Estimated missed or unresolved rate: ${answers.missed_rate ?? 'Not specified'}
-Average client value: ${answers.client_value ?? 'Not specified'}
-Current follow-up process: ${answers.follow_up_process ?? 'Not specified'}
-CRM status: ${answers.crm_status ?? 'Not specified'}
-Weekly admin hours lost: ${answers.weekly_admin_hours ?? 'Not specified'}
-People doing that admin work: ${answers.admin_headcount ?? 'Not specified'}
-Average salary of those people: ${answers.salary_range ?? 'Not specified'}
-Out of hours handling: ${answers.out_of_hours ?? 'Not specified'}
-Reminder automation status: ${answers.reminders_status ?? 'Not specified'}
+Daily inbound calls: ${answers.daily_calls ?? 'Not specified'}
+Missed call rate: ${answers.missed_rate ?? 'Not specified'}
+Conversion rate: ${answers.conversion_rate ?? 'Not specified'}
+Client value: ${answers.client_value ?? 'Not specified'}
+After hours handling: ${answers.after_hours ?? 'Not specified'}
 Urgency level: ${answers.urgency ?? 'Not specified'}
 Company name / website: ${companyName}
 Contact name: ${contactName}
@@ -74,18 +69,20 @@ Website content (scraped from their site, use this to personalise language and r
 ${websiteContent}` : ''}
 
 Calculated figures:
-Annual revenue at risk from missed calls: ${fmt(waste.missedRevenueAnnual)}
+Annual revenue at risk from missed calls: ${fmt(waste.revenueAtRisk)}
 Daily calls: ${waste.dailyCalls}
 Missed rate: ${Math.round(waste.missedRate * 100)}%
 Missed calls per day: ${Math.round(waste.missedCallsPerDay)}
 Missed calls per year: ${waste.missedCallsAnnual}
+Lost conversions per year: ${waste.lostConversionsAnnual}
 Conversion rate: ${Math.round(waste.conversionRate * 100)}%
 Client value: ${fmt(waste.clientValue)}
+After hours multiplier: ${waste.afterHoursMultiplier}x
 Current receptionist cost: £28,000/yr (UK average)
-AI voice agent cost: £3,000 to £6,000/yr
-Estimated annual saving with voice agent: ${fmt(waste.estimatedSaving)}
+AI voice agent cost: £4,500/yr
+Net annual opportunity: ${fmt(waste.netOpportunity)}
 
-This audit is specifically about AI voice agents for call handling. All fixes must be voice agent related.
+This is a voice agent readiness report. The business has a missed call problem. Every fix recommendation must relate to AI voice agent implementation. Do not mention CRM automation, admin workflows, or manual processes unless they are directly caused by call handling failures.
 
 EXECUTIVE SUMMARY. Three paragraphs, strict rules:
 Paragraph one (executiveSummaryP1): State the missed revenue figure, the company name, and the fact it comes from unanswered and mishandled calls. Maximum two sentences.
@@ -105,10 +102,15 @@ Never let a fix impact figure exceed the total waste figure without explicitly s
 ROADMAP MILESTONES. Hard limits:
 Each milestone: maximum six words. Count them. Six words maximum. They must reference the actual business by name or by their specific process. Never write generic milestones that could apply to any company.
 
-SANITY CHECKS. Apply these before generating any numbers:
-If the calculated admin cost implies more than 20% of the stated headcount are doing nothing but admin full time, cap the admin hours used in the calculation at a realistic figure and note the assumption.
-If any individual fix impact figure exceeds the total waste figure, recalculate it.
-If the business type does not match the benchmark vertical, default to professional services benchmarks.
+ROADMAP MILESTONES:
+- month1Milestones: Voice agent setup and configuration for their business type. 3 to 4 milestones. Each max six words.
+- month2Milestones: Going live and handling real calls. 3 to 4 milestones. Each max six words.
+- month3Milestones: Optimisation, call analytics, conversion improvement. 3 to 4 milestones. Each max six words.
+All milestones must be specific to their business. Reference their industry and call volume.
+
+SANITY CHECKS:
+If any individual fix impact figure exceeds the total revenue at risk, recalculate it.
+The three fix impacts should sum to approximately the revenue at risk figure, not exceed it.
 
 OUTPUT FORMAT:
 Return a single valid JSON object. No markdown. No code fences. No preamble. No explanation. Just the raw JSON object starting with the opening curly brace.

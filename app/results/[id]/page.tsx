@@ -536,7 +536,7 @@ export default function ResultsPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          £<AnimatedNumber value={w.missedRevenueAnnual} />
+          £<AnimatedNumber value={w.revenueAtRisk} />
         </motion.p>
 
         <motion.p
@@ -546,6 +546,16 @@ export default function ResultsPage() {
           transition={{ delay: 0.6, duration: 0.5 }}
         >
           in annual revenue at risk from missed calls
+          {w.afterHoursMultiplier > 1 && <span className="text-[14px]"> (including after-hours leakage estimate)</span>}
+        </motion.p>
+
+        <motion.p
+          className="mt-3 text-[17px] font-semibold text-[#d97706]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+        >
+          That is approximately {fmt(Math.round(w.revenueAtRisk / 52 / 100) * 100)} in missed revenue every week.
         </motion.p>
 
         <motion.div
@@ -555,17 +565,17 @@ export default function ResultsPage() {
           transition={{ delay: 1, duration: 0.6 }}
         >
           <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
-            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.missedRevenueAnnual)}</p>
+            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.revenueAtRisk)}</p>
             <p className="mt-2 text-[14px] text-[#999]">Annual revenue at risk from missed calls</p>
           </div>
           <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
             <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.receptionistCost)}</p>
-            <p className="mt-2 text-[14px] text-[#999]">Current estimated receptionist cost</p>
+            <p className="mt-2 text-[14px] text-[#999]">Current annual cost of human call handling</p>
             <p className="mt-1 text-[11px] text-[#bbb]">Based on UK average</p>
           </div>
           <div className="text-center rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6">
-            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.estimatedSaving)}</p>
-            <p className="mt-2 text-[14px] text-[#999]">Estimated annual saving with AI voice agent</p>
+            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.netOpportunity)}</p>
+            <p className="mt-2 text-[14px] text-[#999]">Estimated annual upside from switching to AI voice</p>
           </div>
         </motion.div>
 
@@ -576,15 +586,6 @@ export default function ResultsPage() {
           transition={{ delay: 1.3, duration: 0.5 }}
         >
           Most businesses we work with recover the full cost of implementation within the first 30 to 60 days.
-        </motion.p>
-
-        <motion.p
-          className="mt-4 text-[13px] text-[#bbb] max-w-2xl mx-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.5 }}
-        >
-          Your current setup costs approximately £28,000 per year in receptionist salary. An AI voice agent handling the same volume costs approximately £3,000 to £6,000 per year.
         </motion.p>
       </section>
 
@@ -609,23 +610,23 @@ export default function ResultsPage() {
               <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Missed calls</p>
               <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{w.missedCallsAnnual.toLocaleString('en-GB')}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`${w.dailyCalls} calls/day. ${Math.round(w.missedRate * 100)}% missed. That's ${Math.round(w.missedCallsPerDay)} missed calls every day.`)}
+                {boldNumbers(`${w.dailyCalls} calls/day. ${Math.round(w.missedRate * 100)}% missed. ${Math.round(w.missedCallsPerDay)} missed calls every day, ${w.missedCallsAnnual.toLocaleString('en-GB')} per year.`)}
               </p>
             </motion.div>
 
             <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
               <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Lost revenue</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.missedRevenueAnnual)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.revenueAtRisk)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`At ${Math.round(w.conversionRate * 100)}% conversion and ${fmt(w.clientValue)} per client. Conservative estimate.`)}
+                {boldNumbers(`${w.lostConversionsAnnual} lost conversions at ${fmt(w.clientValue)} each. ${Math.round(w.conversionRate * 100)}% conversion rate. ${w.afterHoursMultiplier > 1 ? `After-hours multiplier: ${w.afterHoursMultiplier}x.` : ''}`)}
               </p>
             </motion.div>
 
             <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Potential saving</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.estimatedSaving)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
+              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Net opportunity</p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.netOpportunity)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                Revenue recovered plus receptionist cost, minus voice agent cost of £3k to £6k/yr.
+                {fmt(w.revenueAtRisk)} recovered + {fmt(w.receptionistCost)} receptionist cost - {fmt(w.voiceAgentCost)} voice agent cost.
               </p>
             </motion.div>
           </div>

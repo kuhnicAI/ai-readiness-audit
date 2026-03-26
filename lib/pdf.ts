@@ -58,7 +58,7 @@ export async function generatePdf(audit: AuditData) {
   // Two-part breakdown
   doc.setFontSize(12)
   doc.setTextColor(...DARK)
-  doc.text(`${fmt(w.missedRevenueAnnual)} revenue at risk from missed enquiries`, pw / 2, 200, { align: 'center' })
+  doc.text(`${fmt(w.revenueAtRisk)} revenue at risk from missed enquiries`, pw / 2, 200, { align: 'center' })
   doc.text(`${fmt(w.receptionistCost)} cost of manual processes`, pw / 2, 210, { align: 'center' })
 
   doc.setFontSize(9)
@@ -85,7 +85,7 @@ export async function generatePdf(audit: AuditData) {
     ['Missed calls per day', String(Math.round(w.missedCallsPerDay))],
     ['Assumed conversion rate', `${Math.round(w.conversionRate * 100)}%`],
     ['Client value', fmt(w.clientValue)],
-    ['Annual revenue at risk', fmt(w.missedRevenueAnnual)],
+    ['Annual revenue at risk', fmt(w.revenueAtRisk)],
   ]
 
   for (const [label, value] of revDetails) {
@@ -109,7 +109,7 @@ export async function generatePdf(audit: AuditData) {
   const adminDetails = [
     ['Current receptionist cost', '\u00A328,000/yr'],
     ['AI voice agent cost', '\u00A33,000 to \u00A36,000/yr'],
-    ['Estimated saving', fmt(w.estimatedSaving)],
+    ['Estimated saving', fmt(w.netOpportunity)],
     ['Missed calls annually', w.missedCallsAnnual.toLocaleString('en-GB')],
     ['Annual hours lost', w.missedCallsAnnual.toLocaleString('en-GB')],
     ['Annual admin cost', fmt(w.receptionistCost)],

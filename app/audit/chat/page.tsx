@@ -10,7 +10,7 @@ interface Message {
   content: string
 }
 
-const TOTAL_VARIABLES = 6
+const TOTAL_VARIABLES = 7
 
 function useStreamText(text: string, speed = 8) {
   const [displayed, setDisplayed] = useState('')
@@ -158,6 +158,7 @@ function ChatAudit() {
       business_type: collected.businessType ?? '',
       daily_calls: collected.dailyCalls ?? '',
       missed_rate: collected.missedRate ?? '',
+      conversion_rate: collected.conversionRate ?? '',
       client_value: collected.clientValue ?? '',
       after_hours: collected.afterHours ?? '',
       urgency: collected.urgency ?? '',

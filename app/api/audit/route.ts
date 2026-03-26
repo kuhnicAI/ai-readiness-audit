@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
     employee_count: answers.employee_count ?? null,
     answers,
     scores: waste,
-    overall_score: waste.missedRevenueAnnual,
-    score_band: waste.missedRevenueAnnual > 500000 ? 'Critical' : waste.missedRevenueAnnual > 200000 ? 'High' : waste.missedRevenueAnnual > 50000 ? 'Moderate' : 'Low',
-    total_waste: waste.missedRevenueAnnual,
+    overall_score: waste.revenueAtRisk,
+    score_band: waste.revenueAtRisk > 500000 ? 'Critical' : waste.revenueAtRisk > 200000 ? 'High' : waste.revenueAtRisk > 50000 ? 'Moderate' : 'Low',
+    total_waste: waste.revenueAtRisk,
     findings: {
       businessType: answers.business_type ?? null,
       afterHours: answers.after_hours ?? null,
