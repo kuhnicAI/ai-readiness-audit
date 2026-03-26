@@ -7,8 +7,23 @@ const sans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const serif = Instrument_Serif({ weight: '400', subsets: ['latin'], variable: '--font-serif' })
 
 export const metadata: Metadata = {
-  title: 'AI Readiness Audit | Transputec x Kuhnic',
-  description: 'Your team is losing hundreds of hours a month to work that shouldn\'t exist. Find out exactly where — and what it costs you annually.',
+  title: 'AI Readiness Audit | Kuhnic',
+  description: 'Find out what inefficiency is costing your business. Takes 4 minutes. Free. No sales call.',
+  metadataBase: new URL('https://audit.kuhnic.ai'),
+  openGraph: {
+    title: 'AI Readiness Audit | Kuhnic',
+    description: 'Find out what inefficiency is costing your business. Takes 4 minutes. Free. No sales call.',
+    url: 'https://audit.kuhnic.ai',
+    siteName: 'Kuhnic AI',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'AI Readiness Audit by Kuhnic' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Readiness Audit | Kuhnic',
+    description: 'Find out what inefficiency is costing your business. Takes 4 minutes.',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
