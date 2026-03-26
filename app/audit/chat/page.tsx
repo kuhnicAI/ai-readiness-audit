@@ -10,7 +10,7 @@ interface Message {
   content: string
 }
 
-const TOTAL_VARIABLES = 12
+const TOTAL_VARIABLES = 6
 
 function useStreamText(text: string, speed = 8) {
   const [displayed, setDisplayed] = useState('')
@@ -156,16 +156,10 @@ function ChatAudit() {
     setSubmitting(true)
     const answers: Record<string, string> = {
       business_type: collected.businessType ?? '',
-      weekly_inbound: collected.weeklyInbound ?? '',
+      daily_calls: collected.dailyCalls ?? '',
       missed_rate: collected.missedRate ?? '',
       client_value: collected.clientValue ?? '',
-      follow_up_process: collected.followUpProcess ?? '',
-      crm_status: collected.crmStatus ?? '',
-      weekly_admin_hours: collected.weeklyAdminHours ?? '',
-      admin_headcount: collected.adminHeadcount ?? '',
-      salary_range: collected.hourlySalary ?? '',
-      out_of_hours: collected.outOfHours ?? '',
-      reminders_status: collected.remindersStatus ?? '',
+      after_hours: collected.afterHours ?? '',
       urgency: collected.urgency ?? '',
       ...contactForm,
       role: 'Not specified',

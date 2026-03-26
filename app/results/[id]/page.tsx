@@ -527,7 +527,7 @@ export default function ResultsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Based on your answers, here is what inefficiency is costing {displayName} each year.
+          Based on your answers, here is what missed calls are costing {displayName} each year.
         </motion.p>
 
         <motion.p
@@ -536,33 +536,56 @@ export default function ResultsPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          £<AnimatedNumber value={w.totalWaste} />
+          £<AnimatedNumber value={w.missedRevenueAnnual} />
         </motion.p>
 
         <motion.p
-          className="mt-4 text-[17px] font-semibold text-[#d97706]"
+          className="mt-3 text-[18px] text-[#999]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
         >
-          That&rsquo;s approximately {fmt(weeklyLoss)} every week you wait.
+          in annual revenue at risk from missed calls
         </motion.p>
 
         <motion.div
-          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-20"
+          className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.6 }}
         >
-          <div className="text-center">
-            <p className="text-[clamp(1.8rem,4vw,2.8rem)] font-serif text-[#00D084]">{fmt(w.revenueAtRisk)}</p>
-            <p className="mt-2 text-[17px] text-[#999]">Revenue at risk from missed calls and enquiries</p>
+          <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
+            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.missedRevenueAnnual)}</p>
+            <p className="mt-2 text-[14px] text-[#999]">Annual revenue at risk from missed calls</p>
           </div>
-          <div className="text-center">
-            <p className="text-[clamp(1.8rem,4vw,2.8rem)] font-serif text-[#00D084]">{fmt(w.adminCost)}</p>
-            <p className="mt-2 text-[17px] text-[#999]">Cost of manual processes and admin</p>
+          <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
+            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.receptionistCost)}</p>
+            <p className="mt-2 text-[14px] text-[#999]">Current estimated receptionist cost</p>
+            <p className="mt-1 text-[11px] text-[#bbb]">Based on UK average</p>
+          </div>
+          <div className="text-center rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6">
+            <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.estimatedSaving)}</p>
+            <p className="mt-2 text-[14px] text-[#999]">Estimated annual saving with AI voice agent</p>
           </div>
         </motion.div>
+
+        <motion.p
+          className="mt-8 text-[15px] text-[#999] max-w-2xl mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.3, duration: 0.5 }}
+        >
+          Most businesses we work with recover the full cost of implementation within the first 30 to 60 days.
+        </motion.p>
+
+        <motion.p
+          className="mt-4 text-[13px] text-[#bbb] max-w-2xl mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 0.5 }}
+        >
+          Your current setup costs approximately £28,000 per year in receptionist salary. An AI voice agent handling the same volume costs approximately £3,000 to £6,000 per year.
+        </motion.p>
       </section>
 
       {/* Divider */}
@@ -582,55 +605,30 @@ export default function ResultsPage() {
           </motion.p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Missed revenue */}
-            <motion.div
-              className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Missed revenue</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.revenueAtRisk)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
+            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Missed calls</p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{w.missedCallsAnnual.toLocaleString('en-GB')}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`${w.weeklyInbound} calls/week. ${Math.round(w.missedRate * 100)}% missed. At ${fmt(w.clientValue)} per client and ${Math.round(w.conversionRate * 100)}% conversion.`)}
+                {boldNumbers(`${w.dailyCalls} calls/day. ${Math.round(w.missedRate * 100)}% missed. That's ${Math.round(w.missedCallsPerDay)} missed calls every day.`)}
               </p>
             </motion.div>
 
-            {/* Manual admin */}
-            <motion.div
-              className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Manual admin</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.adminCost)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
+            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Lost revenue</p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.missedRevenueAnnual)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                {boldNumbers(`${w.adminHeadcount} people. ${w.weeklyAdminHours} hours/week each. £${w.hourlyRate.toFixed(0)}/hr across 52 weeks.`)}
+                {boldNumbers(`At ${Math.round(w.conversionRate * 100)}% conversion and ${fmt(w.clientValue)} per client. Conservative estimate.`)}
               </p>
             </motion.div>
 
-            {/* Total */}
-            <motion.div
-              className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Total waste</p>
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.totalWaste)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
+            <motion.div className="rounded-2xl bg-white border border-[#eee] p-7 shadow-sm" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
+              <p className="text-[20px] font-bold text-[#1a1a2e] mb-3">Potential saving</p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084] mb-4">{fmt(w.estimatedSaving)}<span className="text-[14px] text-[#ccc] font-sans">/yr</span></p>
               <p className="text-[15px] text-[#666] leading-[1.7]">
-                {fmt(w.revenueAtRisk)} + {fmt(w.adminCost)} = <strong className="font-bold text-[#1a1a2e]">{fmt(w.totalWaste)}</strong>. Lower bound of every range.
+                Revenue recovered plus receptionist cost, minus voice agent cost of £3k to £6k/yr.
               </p>
             </motion.div>
           </div>
-
-          <p className="mt-8 text-[15px] text-[#999] text-center">
-            {benchmarkLine(audit.answers?.business_type as string, audit.answers?.employee_count as string)}
-          </p>
         </div>
       </section>
 

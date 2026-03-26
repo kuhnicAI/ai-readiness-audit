@@ -59,7 +59,7 @@ export async function generatePdfPuppeteer(input: PdfInput): Promise<Buffer> {
       return `data:image/png;base64,${fs.readFileSync(p).toString('base64')}`
     } catch { return '' }
   })()
-  const footerLeft = `AI Readiness Audit — ${esc(displayName)}`
+  const footerLeft = `AI Voice Agent Readiness — ${esc(displayName)}`
   const footerRight = (n: number) => `Confidential — ${date} · Page ${n}`
   const pf = (n: number) => `<div class="pf"><span>${footerLeft}</span><span>${footerRight(n)}</span></div>`
   const f1L = esc(truncWords(r.fix1Name, 5)), f2L = esc(truncWords(r.fix2Name, 5)), f3L = esc(truncWords(r.fix3Name, 5))
@@ -143,7 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
       <div style="font-size:100px;font-weight:900;color:#0a0a0a;line-height:0.9;letter-spacing:-3px;opacity:0.12;">AUDIT</div>
       <div style="margin-top:36px;">
         <div style="font-size:64px;font-weight:900;color:#0a0a0a;line-height:1;letter-spacing:-2px;">${fmt(w.totalWaste)}</div>
-        <div style="font-size:14px;color:#6b7280;margin-top:6px;letter-spacing:0.05em;">Estimated annual cost of inefficiency</div>
+        <div style="font-size:14px;color:#6b7280;margin-top:6px;letter-spacing:0.05em;">Annual revenue at risk from missed calls</div>
       </div>
       <div style="margin-top:28px;">
         <div style="font-size:11px;color:#9ca3af;letter-spacing:0.05em;">Prepared for</div>
@@ -168,9 +168,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
   <p style="margin-bottom:14px;font-size:13px;line-height:1.7;color:#374151;">${esc(r.executiveSummaryP3)}</p>
   <div class="divider"></div>
   <div class="metric-row">
-    <div class="metric-box"><div class="ml">Total annual waste</div><div class="mv">${fmt(w.totalWaste)}</div><div class="md">Conservative estimate based on submitted data</div></div>
-    <div class="metric-box"><div class="ml">Annual revenue at risk</div><div class="mv">${fmt(w.revenueAtRisk)}</div><div class="md">From missed and unresolved enquiries</div></div>
-    <div class="metric-box"><div class="ml">Payback period</div><div class="mv">Under 90 days</div><div class="md">Typical for businesses this size and vertical</div></div>
+    <div class="metric-box"><div class="ml">Missed call revenue</div><div class="mv">${fmt(w.missedRevenueAnnual)}</div><div class="md">Annual revenue at risk from missed calls</div></div>
+    <div class="metric-box"><div class="ml">Current receptionist cost</div><div class="mv">${fmt(w.receptionistCost)}</div><div class="md">Based on UK average (£28k/yr)</div></div>
+    <div class="metric-box"><div class="ml">Estimated saving</div><div class="mv">${fmt(w.estimatedSaving)}</div><div class="md">With AI voice agent (£3k to £6k/yr)</div></div>
   </div>
   ${pf(2)}
 </div>
@@ -178,27 +178,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 <!-- METHODOLOGY -->
 <div class="page">
   <h1 class="serif" style="font-size:26px;margin-bottom:14px;page-break-inside:avoid;">Methodology</h1>
-  <p class="muted" style="font-size:12px;line-height:1.6;margin-bottom:20px;">All figures use the lower bound of every range selected. The conversion assumption on missed enquiries is 15%, which is conservative for most professional service verticals. Actual recoverable value is likely higher.</p>
+  <p class="muted" style="font-size:12px;line-height:1.6;margin-bottom:20px;">All figures use the lower bound of every range selected. The conversion assumption is 15%, which is conservative for most call-heavy verticals. Actual recoverable value is likely higher.</p>
   <div class="two-col">
     <div>
-      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Revenue at risk calculation</h3>
-      <div class="calc-row"><span>Weekly inbound enquiries</span><span>${w.weeklyInbound}</span></div>
-      <div class="calc-row"><span>Missed or unresolved rate</span><span>${Math.round(w.missedRate*100)}%</span></div>
-      <div class="calc-row"><span>Missed enquiries per week</span><span>${Math.round(w.missedEnquiriesPerWeek)}</span></div>
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Missed call revenue calculation</h3>
+      <div class="calc-row"><span>Daily inbound calls</span><span>${w.dailyCalls}</span></div>
+      <div class="calc-row"><span>Missed or voicemail rate</span><span>${Math.round(w.missedRate*100)}%${w.missedRateAssumed?' (est.)':''}</span></div>
+      <div class="calc-row"><span>Missed calls per day</span><span>${Math.round(w.missedCallsPerDay)}</span></div>
+      <div class="calc-row"><span>Missed calls per year</span><span>${w.missedCallsAnnual.toLocaleString('en-GB')}</span></div>
       <div class="calc-row"><span>Assumed conversion rate</span><span>${Math.round(w.conversionRate*100)}%</span></div>
       <div class="calc-row"><span>Average client value</span><span>${fmt(w.clientValue)}</span></div>
-      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.revenueAtRisk)}</span></div>
+      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.missedRevenueAnnual)}</span></div>
     </div>
     <div>
-      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Manual process cost calculation</h3>
-      <div class="calc-row"><span>Weekly admin hours</span><span>${w.weeklyAdminHours}${w.adminHoursAssumed?' (est.)':''}</span></div>
-      <div class="calc-row"><span>People involved</span><span>${w.adminHeadcount}</span></div>
-      <div class="calc-row"><span>Hourly rate</span><span>£${w.hourlyRate.toFixed(0)}/hr${w.salaryAssumed?' (est.)':''}</span></div>
-      <div class="calc-row"><span>Annual hours lost</span><span>${w.annualHoursLost.toLocaleString('en-GB')}</span></div>
-      <div class="calc-row bold"><span>Annual admin cost</span><span>${fmt(w.adminCost)}</span></div>
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Cost comparison</h3>
+      <div class="calc-row"><span>Current receptionist cost</span><span>£28,000/yr</span></div>
+      <div class="calc-row"><span style="font-size:10px;color:#9ca3af;">Based on UK average fully loaded cost</span><span></span></div>
+      <div class="calc-row"><span>AI voice agent cost</span><span>£3,000 to £6,000/yr</span></div>
+      <div class="calc-row"><span>Annual receptionist saving</span><span>${fmt(w.receptionistCost - w.voiceAgentCost)}</span></div>
+      <div class="calc-row bold"><span>Total estimated saving</span><span>${fmt(w.estimatedSaving)}</span></div>
     </div>
   </div>
-  <div class="green-box"><strong>Total annual waste: ${fmt(w.revenueAtRisk)} + ${fmt(w.adminCost)} = ${fmt(w.totalWaste)}.</strong> These figures represent a conservative floor. The actual cost including opportunity cost and staff stress is typically 1.4 to 1.8 times this figure.</div>
+  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.missedRevenueAnnual)}.</strong> Combined with the receptionist cost saving, an AI voice agent represents a net benefit of ${fmt(w.estimatedSaving)} per year. Most businesses recover implementation costs within 30 to 60 days.</div>
   <svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:16px;">
     <rect width="480" height="320" fill="white" rx="8"/>
     <rect x="40" y="20" width="200" height="130" fill="rgba(0,201,125,0.08)" rx="4"/>

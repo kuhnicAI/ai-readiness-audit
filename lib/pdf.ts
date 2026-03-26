@@ -58,8 +58,8 @@ export async function generatePdf(audit: AuditData) {
   // Two-part breakdown
   doc.setFontSize(12)
   doc.setTextColor(...DARK)
-  doc.text(`${fmt(w.revenueAtRisk)} revenue at risk from missed enquiries`, pw / 2, 200, { align: 'center' })
-  doc.text(`${fmt(w.adminCost)} cost of manual processes`, pw / 2, 210, { align: 'center' })
+  doc.text(`${fmt(w.missedRevenueAnnual)} revenue at risk from missed enquiries`, pw / 2, 200, { align: 'center' })
+  doc.text(`${fmt(w.receptionistCost)} cost of manual processes`, pw / 2, 210, { align: 'center' })
 
   doc.setFontSize(9)
   doc.setTextColor(...LIGHT_GREY)
@@ -80,12 +80,12 @@ export async function generatePdf(audit: AuditData) {
   y += 10
 
   const revDetails = [
-    ['Weekly inbound enquiries', String(w.weeklyInbound)],
+    ['Daily inbound calls', String(w.dailyCalls)],
     ['Missed rate', `${Math.round(w.missedRate * 100)}%${w.missedRateAssumed ? ' (estimated)' : ''}`],
-    ['Missed enquiries per week', String(Math.round(w.missedEnquiriesPerWeek))],
+    ['Missed calls per day', String(Math.round(w.missedCallsPerDay))],
     ['Assumed conversion rate', `${Math.round(w.conversionRate * 100)}%`],
     ['Client value', fmt(w.clientValue)],
-    ['Annual revenue at risk', fmt(w.revenueAtRisk)],
+    ['Annual revenue at risk', fmt(w.missedRevenueAnnual)],
   ]
 
   for (const [label, value] of revDetails) {
@@ -107,12 +107,12 @@ export async function generatePdf(audit: AuditData) {
   y += 10
 
   const adminDetails = [
-    ['Weekly admin hours', `${w.weeklyAdminHours}${w.adminHoursAssumed ? ' (estimated)' : ''}`],
-    ['People involved', String(w.adminHeadcount)],
-    ['Hourly rate', `\u00A3${w.hourlyRate.toFixed(0)}/hr${w.salaryAssumed ? ' (UK median)' : ''}`],
-    ['Salary basis', w.salaryUsed],
-    ['Annual hours lost', w.annualHoursLost.toLocaleString('en-GB')],
-    ['Annual admin cost', fmt(w.adminCost)],
+    ['Current receptionist cost', '\u00A328,000/yr'],
+    ['AI voice agent cost', '\u00A33,000 to \u00A36,000/yr'],
+    ['Estimated saving', fmt(w.estimatedSaving)],
+    ['Missed calls annually', w.missedCallsAnnual.toLocaleString('en-GB')],
+    ['Annual hours lost', w.missedCallsAnnual.toLocaleString('en-GB')],
+    ['Annual admin cost', fmt(w.receptionistCost)],
   ]
 
   for (const [label, value] of adminDetails) {

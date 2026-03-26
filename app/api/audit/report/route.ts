@@ -79,9 +79,9 @@ Email: ${contactEmail}
 Website: ${companyName}
 Role: ${role}
 
-Total waste identified: ${Math.round(waste.totalWaste / 1000)}k/yr
-Revenue at risk: ${Math.round(waste.revenueAtRisk / 1000)}k/yr
-Admin cost: ${Math.round(waste.adminCost / 1000)}k/yr
+Missed revenue annually: ${Math.round(waste.missedRevenueAnnual / 1000)}k/yr
+Missed calls per day: ${Math.round(waste.missedCallsPerDay)}
+Estimated saving with voice agent: ${Math.round(waste.estimatedSaving / 1000)}k/yr
 
 Business type: ${(answers.business_type as string) ?? 'Not specified'}
 Weekly inbound: ${(answers.weekly_inbound as string) ?? 'Not specified'}

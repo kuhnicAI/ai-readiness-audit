@@ -196,9 +196,9 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
-            You&rsquo;re losing<br />
-            <em className="text-[#00D084] italic">hundreds of hours</em> a month<br />
-            to work that shouldn&rsquo;t exist.
+            Your phone rings when you&rsquo;re<br />
+            <em className="text-[#00D084] italic">busy, closed, or understaffed.</em><br />
+            Find out what that&rsquo;s worth annually.
           </motion.h1>
 
           <motion.p
@@ -207,7 +207,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            Find out exactly what inefficiency is costing your business. Takes 4 minutes.
+            Takes 3 minutes. We calculate your exact annual revenue loss from missed and mishandled calls.
           </motion.p>
 
           <motion.div
@@ -245,7 +245,7 @@ export default function HomePage() {
           </div>
           <div>
             <p className="text-[clamp(2rem,4vw,3.2rem)] font-serif text-[#1a1a2e]">
-              <Counter end={4} suffix=" min" delay={1000} />
+              <Counter end={3} suffix=" min" delay={1000} />
             </p>
             <p className="mt-1 text-[11px] text-[#999] uppercase tracking-wider">To complete</p>
           </div>
@@ -266,17 +266,17 @@ export default function HomePage() {
         <div className="space-y-6">
           <RevealLine delay={0}>
             <p className="text-[clamp(2rem,5vw,3.5rem)] font-serif text-[#1a1a2e] leading-[1.15]">
-              Your exact annual waste number.
+              Your exact missed revenue number.
             </p>
           </RevealLine>
           <RevealLine delay={0.15}>
             <p className="text-[clamp(2rem,5vw,3.5rem)] font-serif text-[#1a1a2e] leading-[1.15]">
-              The three fixes ranked by ROI.
+              What an AI voice agent would recover.
             </p>
           </RevealLine>
           <RevealLine delay={0.3}>
             <p className="text-[clamp(2rem,5vw,3.5rem)] font-serif text-[#1a1a2e] leading-[1.15]">
-              A report ready to share with leadership.
+              A cost comparison against your current setup.
             </p>
           </RevealLine>
         </div>

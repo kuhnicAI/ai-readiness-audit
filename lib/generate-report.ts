@@ -74,27 +74,29 @@ Website content (scraped from their site, use this to personalise language and r
 ${websiteContent}` : ''}
 
 Calculated figures:
-Estimated annual revenue at risk from missed inbound: ${fmt(waste.revenueAtRisk)}
-Estimated annual cost of manual admin: ${fmt(waste.adminCost)}
-Total estimated annual waste: ${fmt(waste.totalWaste)}
-Weekly inbound: ${waste.weeklyInbound}
+Annual revenue at risk from missed calls: ${fmt(waste.missedRevenueAnnual)}
+Daily calls: ${waste.dailyCalls}
 Missed rate: ${Math.round(waste.missedRate * 100)}%
+Missed calls per day: ${Math.round(waste.missedCallsPerDay)}
+Missed calls per year: ${waste.missedCallsAnnual}
 Conversion rate: ${Math.round(waste.conversionRate * 100)}%
 Client value: ${fmt(waste.clientValue)}
-Admin headcount: ${waste.adminHeadcount}
-Admin hours/week: ${waste.weeklyAdminHours}
-Hourly rate: £${waste.hourlyRate.toFixed(0)}
+Current receptionist cost: £28,000/yr (UK average)
+AI voice agent cost: £3,000 to £6,000/yr
+Estimated annual saving with voice agent: ${fmt(waste.estimatedSaving)}
+
+This audit is specifically about AI voice agents for call handling. All fixes must be voice agent related.
 
 EXECUTIVE SUMMARY. Three paragraphs, strict rules:
-Paragraph one (executiveSummaryP1): State the total waste figure, the company name, and the two categories it comes from. Maximum two sentences.
-Paragraph two (executiveSummaryP2): Name the single largest waste category, the specific pound value, and one concrete operational reason it is happening based on their form answers. Maximum two sentences.
-Paragraph three (executiveSummaryP3): State what implementing the top two fixes will achieve, with a specific pound figure and a 90 day timeframe. Maximum two sentences. Do not mention Kuhnic by name in this paragraph.
+Paragraph one (executiveSummaryP1): State the missed revenue figure, the company name, and the fact it comes from unanswered and mishandled calls. Maximum two sentences.
+Paragraph two (executiveSummaryP2): Reference the specific number of missed calls per day, the client value, and what happens to those callers right now based on their form answers. Maximum two sentences.
+Paragraph three (executiveSummaryP3): State what an AI voice agent would recover, including the cost comparison against a receptionist. Maximum two sentences. Do not mention Kuhnic by name.
 
 FIX DESCRIPTIONS. Hard limits:
-Fix 1 should relate to inbound calls and missed revenue if missed rate is above 10% and client value above £500.
-Fix 2 should relate to CRM and follow-up if out of date or non-existent. Otherwise use admin hours.
-Fix 3 should relate to admin processes, out of hours handling, or reminders depending on worst answer.
-Rank by financial impact, highest first.
+Fix 1: 24/7 AI call answering. This is always the highest impact fix. Every call answered instantly, caller qualified, appointments booked automatically.
+Fix 2: After hours and overflow handling. Calls that currently go to voicemail or get missed when staff are busy are captured and handled by the AI agent.
+Fix 3: Call qualification and automated booking. The AI agent qualifies callers, collects key information, and books directly into the calendar without human intervention.
+The specifics of each fix should vary based on the business type, but the three categories are always calls.
 
 Each rightNow value: exactly two sentences. Sentence one states the specific problem using at least one number from the submitted data. Sentence two gives one concrete operational consequence of that problem. No more. If you write a third sentence, you have failed.
 Each afterFix value: exactly two sentences. Sentence one states the specific measurable outcome after implementation. Sentence two describes one concrete operational change for the team. No more. If you write a third sentence, you have failed.

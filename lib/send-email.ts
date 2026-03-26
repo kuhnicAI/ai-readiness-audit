@@ -25,7 +25,7 @@ export async function sendReportEmail(input: EmailInput) {
 
 Your audit for ${displayName} is done.
 
-We found areas where your business could recover around ${waste.totalWaste >= 1000000 ? (waste.totalWaste / 1000000).toFixed(1) + 'm' : Math.round(waste.totalWaste / 1000) + 'k'} per year. The full breakdown is on your results page, and you can download the PDF from there.
+We found areas where your business could recover around ${waste.missedRevenueAnnual >= 1000000 ? (waste.missedRevenueAnnual / 1000000).toFixed(1) + 'm' : Math.round(waste.missedRevenueAnnual / 1000) + 'k'} per year in missed call revenue. The full breakdown is on your results page, and you can download the PDF from there.
 
 If you want to talk through the findings, book a quick call:
 calendly.com/jorge-linklemon/30min
@@ -41,7 +41,7 @@ Kuhnic`
   <div style="max-width:560px;margin:0 auto;padding:32px 20px;">
     <p>Hi ${firstName},</p>
     <p>Your audit for <strong>${displayName}</strong> is done.</p>
-    <p>We found areas where your business could recover around ${waste.totalWaste >= 1000000 ? (waste.totalWaste / 1000000).toFixed(1) + 'm' : Math.round(waste.totalWaste / 1000) + 'k'} per year. The full breakdown is on your results page, and you can download the PDF from there.</p>
+    <p>We found areas where your business could recover around ${waste.missedRevenueAnnual >= 1000000 ? (waste.missedRevenueAnnual / 1000000).toFixed(1) + 'm' : Math.round(waste.missedRevenueAnnual / 1000) + 'k'} per year in missed call revenue. The full breakdown is on your results page, and you can download the PDF from there.</p>
     <p>If you want to talk through the findings:</p>
     <p><a href="https://calendly.com/jorge-linklemon/30min" style="color:#0066cc;">Book a 15-minute call</a></p>
     <p>No pitch. Just your numbers.</p>
