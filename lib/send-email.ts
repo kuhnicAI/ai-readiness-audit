@@ -114,7 +114,7 @@ export async function sendReportEmail(input: EmailInput) {
 </html>`
 
   const result = await resend.emails.send({
-    from: 'Kuhnic AI <audit@kuhnic.ai>',
+    from: 'Kuhnic AI <noreply@audit.kuhnic.ai>',
     to,
     subject: `Your AI Audit: ${fmt(waste.totalWaste)} in annual waste identified — ${companyName}`,
     html,
