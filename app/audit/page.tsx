@@ -178,35 +178,22 @@ function AuditForm() {
 
   const navigatingRef = useRef(false)
 
-  // Disqualification check: after missed_rate (screen index 3) is answered
-  const checkDisqualification = useCallback((currentAnswers: Record<string, string>) => {
-    const weeklyInbound = currentAnswers.weekly_inbound
-    const missedRate = currentAnswers.missed_rate
-    if (weeklyInbound === 'Under 20 per week' && missedRate === 'Almost none') {
-      // Log disqualification to database
+  const handleNext = () => {
+    if (navigatingRef.current) return
+
+    // After weekly_inbound is answered (screen index 2), disqualify if under 20
+    if (step === 2 && screen.id === 'weekly_inbound' && answers.weekly_inbound === 'Under 20 per week') {
       fetch('/api/audit/disqualify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          business_type: currentAnswers.business_type ?? null,
-          weekly_inbound: weeklyInbound,
-          missed_rate: missedRate,
+          business_type: answers.business_type ?? null,
+          weekly_inbound: answers.weekly_inbound,
+          missed_rate: null,
         }),
       }).catch(() => {})
-      return true
-    }
-    return false
-  }, [])
-
-  const handleNext = () => {
-    if (navigatingRef.current) return
-
-    // After missed_rate is answered (screen index 3), run disqualification check
-    if (step === 3 && screen.id === 'missed_rate') {
-      if (checkDisqualification(answers)) {
-        setDisqualified(true)
-        return
-      }
+      setDisqualified(true)
+      return
     }
 
     if (step < totalSteps - 1) {
@@ -321,21 +308,32 @@ function AuditForm() {
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-[clamp(1.8rem,4vw,2.6rem)] font-serif text-[#1a1a2e] leading-snug">
-              This probably is not for you right now.
+              A voice agent probably is not your biggest win right now.
             </h1>
             <p className="mt-6 text-[16px] text-[#888] leading-[1.7]">
-              This calculator is built for businesses handling a solid volume of inbound calls where missed or
-              unanswered calls are a real problem. Based on your answers, that does not sound like your situation yet.
+              This calculator is built for businesses fielding a serious volume of inbound calls where missed or
+              unanswered calls are costing real money. At your current call volume, the numbers will not stack up
+              enough to justify it.
             </p>
-            <p className="mt-4 text-[14px] text-[#aaa] leading-[1.7]">
-              If your call volume is growing or you think you may have misread a question, you can start again below.
+            <p className="mt-4 text-[16px] text-[#888] leading-[1.7]">
+              What you likely need is a simpler automation setup to handle the calls you do get more efficiently. We can help with that too.
             </p>
-            <button
-              onClick={handleStartOver}
-              className="mt-10 rounded-full bg-[#00D084] px-8 py-4 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors"
-            >
-              Start again
-            </button>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <a
+                href="https://kuhnic.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-[#00D084] px-8 py-4 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors"
+              >
+                Visit Kuhnic.ai
+              </a>
+              <button
+                onClick={handleStartOver}
+                className="rounded-full border border-[#ddd] px-8 py-4 text-[15px] font-medium text-[#888] hover:border-[#bbb] hover:text-[#1a1a2e] transition-colors"
+              >
+                Start again
+              </button>
+            </div>
           </motion.div>
         </div>
       </div>

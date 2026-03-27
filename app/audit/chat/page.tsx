@@ -98,14 +98,10 @@ function ChatAudit() {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }, [])
 
-  // Disqualification check for chat-collected data
+  // Disqualification check — low call volume alone is enough
   const checkDisqualification = useCallback((data: Record<string, string>) => {
     const weeklyInbound = data.dailyCalls ?? data.weeklyInbound ?? ''
-    const missedRate = data.missedRate ?? ''
-    // Map old "Under 10" to new "Under 20 per week" for chat compatibility
-    const isLowVolume = weeklyInbound === 'Under 20 per week' || weeklyInbound === 'Under 10'
-    const isAlmostNone = missedRate === 'Almost none'
-    return isLowVolume && isAlmostNone
+    return weeklyInbound === 'Under 20 per week' || weeklyInbound === 'Under 10'
   }, [])
 
   const sendToApi = useCallback(async (newMessages: Message[]) => {
@@ -152,7 +148,7 @@ function ChatAudit() {
           }).catch(() => {})
 
           // Replace the last assistant message with the disqualification message
-          const dqMessage = "Based on what you've told me, an AI voice agent probably is not the right move for your business at this stage. This tool is built for businesses where missed calls are a consistent and costly problem. Yours does not sound like that situation right now.\n\nIf your call volume picks up or you think you answered differently than you meant to, feel free to start again."
+          const dqMessage = "A voice agent probably is not your biggest win right now. This calculator is built for businesses fielding a serious volume of inbound calls where missed or unanswered calls are costing real money. At your current call volume, the numbers will not stack up enough to justify it.\n\nWhat you likely need is a simpler automation setup to handle the calls you do get more efficiently. We can help with that too — visit kuhnic.ai to see what else we do, or start again if you think you answered differently than you meant to."
           setMessages(prev => {
             const updated = [...prev]
             updated[updated.length - 1] = { role: 'assistant', content: dqMessage }
@@ -376,13 +372,21 @@ function ChatAudit() {
             </div>
           )}
 
-          {/* Disqualification — Start again button */}
+          {/* Disqualification buttons */}
           {disqualified && !streaming && (
             <div className="pt-6">
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                <a
+                  href="https://kuhnic.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-[#00c97d] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00b873] transition-colors"
+                >
+                  Visit Kuhnic.ai
+                </a>
                 <button
                   onClick={handleStartOver}
-                  className="rounded-full bg-[#00c97d] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00b873] transition-colors"
+                  className="rounded-full border border-[#e5e7eb] px-8 py-3.5 text-[15px] font-medium text-[#888] hover:border-[#bbb] hover:text-[#111] transition-colors"
                 >
                   Start again
                 </button>
