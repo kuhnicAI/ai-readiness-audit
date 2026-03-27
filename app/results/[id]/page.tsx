@@ -147,13 +147,13 @@ function AnalysingMessages() {
   }, [messages.length])
 
   return (
-    <section className="relative z-10 py-24 px-6 max-w-4xl mx-auto">
-      <div className="text-center py-20">
-        <div className="inline-block w-8 h-8 border-[3px] border-[#eee] border-t-[#00D084] rounded-full animate-spin mb-6" />
+    <section className="relative z-10 py-32 px-6 max-w-4xl mx-auto">
+      <div className="text-center py-24">
+        <div className="inline-block w-12 h-12 border-[3px] border-[#eee] border-t-[#00D084] rounded-full animate-spin mb-10" />
         <AnimatePresence mode="wait">
           <motion.p
             key={idx}
-            className="text-[18px] text-[#999] font-serif"
+            className="text-[clamp(1.4rem,3vw,1.8rem)] text-[#999] font-serif"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -257,7 +257,6 @@ function PdfDownloadSection({ audit, waste, report, displayName }: { audit: Audi
         </button>
       </motion.div>
       {pdfError && <p className="mt-3 text-[13px] text-red-500 text-center">{pdfError}</p>}
-      <p className="mt-4 text-[13px] text-[#999] text-center">We&rsquo;ve also sent a summary to {audit.contact_email}</p>
     </section>
   )
 }
@@ -276,8 +275,6 @@ export default function ResultsPage() {
   // Locked/unlocked state
   const [locked, setLocked] = useState(true)
   const [revealing, setRevealing] = useState(false)
-  const [toastEmail, setToastEmail] = useState('')
-  const [toastVisible, setToastVisible] = useState(false)
 
   // Overlay form state
   const [overlayEmail, setOverlayEmail] = useState('')
@@ -357,10 +354,6 @@ export default function ResultsPage() {
       setTimeout(() => {
         setLocked(false)
         setRevealing(false)
-        // Show toast
-        setToastEmail(overlayEmail.trim())
-        setToastVisible(true)
-        setTimeout(() => setToastVisible(false), 4000)
       }, 400)
     } catch {
       setOverlaySubmitting(false)
@@ -395,21 +388,6 @@ export default function ResultsPage() {
 
   return (
     <div className="relative min-h-screen bg-white text-[#1a1a2e]">
-      {/* ═══ TOAST ═══ */}
-      <AnimatePresence>
-        {toastVisible && (
-          <motion.div
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#1a1a2e] text-white text-[14px] px-6 py-3 rounded-full shadow-lg"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            Report sent to {toastEmail}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* ═══ COLORBENDS BG ═══ */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-10">
         <ColorBends
@@ -526,6 +504,7 @@ export default function ResultsPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
+            <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#00D084] mb-4 text-center">Your full report is ready</p>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-serif text-[#1a1a2e] mb-4 text-center">
               The three highest-ROI fixes for {displayName}
             </h2>
