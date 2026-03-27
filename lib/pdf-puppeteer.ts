@@ -258,13 +258,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
     <line x1="255" y1="40" x2="255" y2="320" stroke="#e5e7eb" stroke-width="0.5"/>
     <line x1="360" y1="40" x2="360" y2="320" stroke="#e5e7eb" stroke-width="0.5"/>
     <!-- Y axis label -->
-    <text x="20" y="180" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" transform="rotate(-90,20,180)" text-anchor="middle">Financial Impact ↑</text>
+    <text x="14" y="180" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" transform="rotate(-90,14,180)" text-anchor="middle">Financial Impact ↑</text>
     <!-- X axis label -->
     <text x="255" y="345" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Implementation Effort →</text>
     <!-- Y axis ticks -->
-    <text x="46" y="73" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">High</text>
-    <text x="46" y="183" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Medium</text>
-    <text x="46" y="293" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Low</text>
+    <text x="44" y="73" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">High</text>
+    <text x="44" y="183" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Med</text>
+    <text x="44" y="293" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Low</text>
     <!-- X axis ticks -->
     <text x="100" y="335" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Low</text>
     <text x="255" y="335" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Medium</text>
@@ -274,11 +274,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
     <text x="${50+410*0.22}" y="${40+280*0.15+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">1</text>
     <text x="${50+410*0.22+24}" y="${40+280*0.15+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f1L}</text>
     <!-- Fix 2 -->
-    <circle cx="${50+410*0.35}" cy="${40+280*0.45}" r="18" fill="#34d399"/>
+    <circle cx="${50+410*0.35}" cy="${40+280*0.45}" r="18" fill="#00c97d"/>
     <text x="${50+410*0.35}" y="${40+280*0.45+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">2</text>
     <text x="${50+410*0.35+24}" y="${40+280*0.45+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f2L}</text>
     <!-- Fix 3 -->
-    <circle cx="${50+410*0.48}" cy="${40+280*0.68}" r="18" fill="#6ee7b7"/>
+    <circle cx="${50+410*0.48}" cy="${40+280*0.68}" r="18" fill="#00c97d"/>
     <text x="${50+410*0.48}" y="${40+280*0.68+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">3</text>
     <text x="${50+410*0.48+24}" y="${40+280*0.68+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f3L}</text>
     <!-- Legend -->
