@@ -9,15 +9,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Answers are required' }, { status: 400 })
   }
 
-  const contactEmail = (answers.contact_email as string)?.trim()
-  const companyName = (answers.company_name as string)?.trim() // This is now the website URL
-  const contactName = (answers.contact_name as string)?.trim() || contactEmail?.split('@')[0] || ''
+  const contactEmail = (answers.contact_email as string)?.trim() || null
+  const companyName = (answers.company_name as string)?.trim() || null
+  const contactName = (answers.contact_name as string)?.trim() || contactEmail?.split('@')[0] || null
 
-  if (!contactEmail || !companyName) {
-    return NextResponse.json({ error: 'Email and website are required' }, { status: 400 })
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+  // Email/website are optional for initial locked submission (form flow)
+  if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
     return NextResponse.json({ error: 'Valid email is required' }, { status: 400 })
   }
 
@@ -26,9 +23,9 @@ export async function POST(req: NextRequest) {
   const isPersonalEmail = answers.personal_email === 'true'
 
   const row = {
-    company_name: companyName,
-    contact_name: contactName,
-    contact_email: contactEmail,
+    company_name: companyName ?? 'pending',
+    contact_name: contactName ?? 'pending',
+    contact_email: contactEmail ?? 'pending',
     role: answers.role ?? null,
     industry: answers.business_type ?? null,
     employee_count: answers.employee_count ?? null,
@@ -76,39 +73,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to save audit response' }, { status: 500 })
   }
 
-  // Fire webhook in background
-  const webhookUrl = process.env.WEBHOOK_URL
-  if (webhookUrl) {
-    fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        audit_id: data.id,
-        contact_name: contactName,
-        contact_email: contactEmail,
-        company_name: companyName,
-        role: answers.role ?? null,
-        employee_count: answers.employee_count ?? null,
-        business_type: answers.business_type ?? null,
-        urgency: answers.urgency ?? null,
-        personal_email: isPersonalEmail,
-        answers,
-        waste,
-        sdm_name: sdm_name ?? null,
-        sdm_email: sdm_email ?? null,
-        completed_at: new Date().toISOString(),
-      }),
-    }).then(async (res) => {
-      if (res.ok) {
-        await supabaseAdmin
-          .from('audit_responses')
-          .update({ webhook_sent: true, webhook_sent_at: new Date().toISOString() })
-          .eq('id', data.id)
-      }
-    }).catch(() => {})
+  // Fire webhook in background (only if contact info was provided)
+  if (contactEmail) {
+    const webhookUrl = process.env.WEBHOOK_URL
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audit_id: data.id,
+          contact_name: contactName,
+          contact_email: contactEmail,
+          company_name: companyName,
+          role: answers.role ?? null,
+          employee_count: answers.employee_count ?? null,
+          business_type: answers.business_type ?? null,
+          urgency: answers.urgency ?? null,
+          personal_email: isPersonalEmail,
+          answers,
+          waste,
+          sdm_name: sdm_name ?? null,
+          sdm_email: sdm_email ?? null,
+          completed_at: new Date().toISOString(),
+        }),
+      }).then(async (res) => {
+        if (res.ok) {
+          await supabaseAdmin
+            .from('audit_responses')
+            .update({ webhook_sent: true, webhook_sent_at: new Date().toISOString() })
+            .eq('id', data.id)
+        }
+      }).catch(() => {})
+    }
   }
 
-  // Scrape website in background (unless skip_scrape flag is set from timeout retry)
+  // Scrape website in background (only if website provided and not skipped)
   if (!skip_scrape && companyName) {
     import('@/lib/scrape-website').then(({ scrapeWebsite }) => {
       scrapeWebsite(companyName).then(async (content) => {

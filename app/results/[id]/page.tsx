@@ -9,6 +9,25 @@ import type { WasteCalculation } from '@/lib/waste'
 
 const ColorBends = dynamic(() => import('@/components/ColorBends'), { ssr: false })
 
+const PERSONAL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.co.uk',
+  'outlook.com', 'outlook.co.uk', 'yahoo.com', 'yahoo.co.uk',
+  'icloud.com', 'live.com', 'live.co.uk', 'me.com',
+  'btinternet.com', 'sky.com', 'virginmedia.com', 'talktalk.net', 'aol.com',
+])
+
+function isPersonalEmailDomain(email: string): boolean {
+  const domain = email.trim().toLowerCase().split('@')[1]
+  return domain ? PERSONAL_DOMAINS.has(domain) : false
+}
+
+function normaliseWebsite(raw: string): string {
+  let url = raw.trim()
+  if (!url) return ''
+  if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url
+  return url
+}
+
 const fmt = (n: number) => '£' + n.toLocaleString('en-GB')
 
 function limitToTwoSentences(text: string): string {
@@ -24,15 +43,6 @@ function stripMarkdown(text: string): string {
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/^[-*]\s+/gm, '')
     .replace(/`/g, '')
-}
-
-function boldNumbers(text: string) {
-  const parts = text.split(/(£[\d,.]+|[\d,.]+%|[\d,.]+\s+(?:people|hours?|calls?|per week|inbound|per hour|weeks?))/g)
-  return parts.map((part, i) =>
-    /^£|^\d.*%$|^\d/.test(part)
-      ? <strong key={i} className="font-bold">{part}</strong>
-      : <span key={i}>{part}</span>
-  )
 }
 
 interface AuditData {
@@ -77,7 +87,6 @@ function AnimatedNumber({ value }: { value: number }) {
 }
 
 function parseFixes(report: string): ParsedFix[] {
-  // Try JSON format first (new structured output)
   const cleaned = report.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
   try {
     const parsed = JSON.parse(cleaned)
@@ -90,7 +99,6 @@ function parseFixes(report: string): ParsedFix[] {
     }
   } catch { /* not JSON, try legacy parsing */ }
 
-  // Legacy text format fallback
   const clean = stripMarkdown(report)
   const fixes: ParsedFix[] = []
   const fixRegex = /Fix\s+(\d+):\s*(.+?)(?=\n)/g
@@ -126,7 +134,6 @@ function AnalysingMessages() {
   const messages = [
     'Analysing your business...',
     'Comparing against industry benchmarks...',
-    'Looking at your website...',
     'Identifying the highest-ROI fixes...',
     'Writing your personalised recommendations...',
   ]
@@ -160,175 +167,19 @@ function AnalysingMessages() {
   )
 }
 
-function FixesSection({ fixes, companyName, loading }: { fixes: ParsedFix[]; companyName: string; loading: boolean }) {
-  if (loading) {
-    return <AnalysingMessages />
-  }
-
-  if (fixes.length === 0) return null
-
-  return (
-    <section className="relative z-10 py-24 px-6 max-w-4xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-serif text-[#1a1a2e] mb-4 text-center">
-          The three highest-ROI fixes for {companyName}
-        </h2>
-        <p className="text-[17px] text-[#999] text-center mb-14">
-          Most businesses we work with recover the cost of implementation within 60 days.
-        </p>
-      </motion.div>
-
-      <div className="space-y-6">
-        {fixes.map((fix, i) => (
-          <motion.div
-            key={i}
-            className="rounded-2xl bg-white border border-[#eee] p-8 md:p-12 shadow-sm"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-5%' }}
-            transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="flex items-start justify-between gap-4 mb-8">
-              <h3 className="text-[24px] font-bold text-[#1a1a2e] leading-snug">{fix.name}</h3>
-              <span className="shrink-0 text-[16px] font-semibold text-[#00D084]">{fix.impact}</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#d97706] mb-3">Right now</p>
-                <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fix.now)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#00D084] mb-3">After the fix</p>
-                <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fix.after)}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-const TESTIMONIALS_BY_TYPE: Record<string, { quote: string; name: string; title: string } | null> = {
-  'We sell services to clients (agency, consultancy, professional services)': {
-    quote: 'Prospecting used to feel like finding a needle in a haystack. Now the haystack sorts itself, and our SDRs only touch gold.',
-    name: 'Fernando Bozalongo Yag\u00FCe',
-    title: 'Chief of Growth, NeuronUP',
-  },
-  'We run a practice or clinic (legal, medical, financial)': {
-    quote: 'We had no idea how much we were losing to missed calls until we saw the number. Within three months, 82% of our inbound calls were being handled automatically. Qualified consultations went up 41%.',
-    name: 'Kevin Kim',
-    title: 'Technical Lead, Vasquez Law Firm',
-  },
-  'We operate a location-based business (venue, retail, hospitality)': {
-    quote: 'The system runs quietly in the background and removes almost all manual work from client intake. Our team focuses on the work that matters, not admin.',
-    name: 'Daniel Yaniv, Esq.',
-    title: 'Founder, Yaniv & Associates',
-  },
-  "We're a tech company or SaaS": {
-    quote: 'Before this, we were pulling credit reports, searching SAP, googling companies one by one. Now the system hands us a report in minutes.',
-    name: 'Kristina Brahmstaedt',
-    title: 'AI Support Team Lead, AroundTown',
-  },
-}
-
-function TestimonialSection({ businessType }: { businessType: string }) {
-  const testimonial = TESTIMONIALS_BY_TYPE[businessType]
-  if (!testimonial) return null
-
-  return (
-    <section className="relative z-10 py-24 px-6 max-w-4xl mx-auto">
-      <motion.div
-        className="rounded-2xl bg-[#f5f5f5] border border-[#e5e5e5] p-10 md:p-14 text-center"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <p className="text-[20px] text-[#1a1a2e] leading-[1.8] max-w-2xl mx-auto">
-          {testimonial.quote}
-        </p>
-        <p className="mt-10 text-[14px] text-[#999]">
-          {testimonial.name}, {testimonial.title}
-        </p>
-      </motion.div>
-    </section>
-  )
-}
-
 function formatCompanyName(raw: string): string {
   let name = raw.trim()
-  // Strip protocol
   name = name.replace(/^https?:\/\//, '')
-  // Strip www.
   name = name.replace(/^www\./, '')
-  // Strip trailing slash
   name = name.replace(/\/+$/, '')
-  // If it looks like a domain, extract the name part
   if (name.includes('.')) {
-    // e.g. "kuhnic.ai" → "Kuhnic", "mycompany.co.uk" → "Mycompany"
     const parts = name.split('.')
     name = parts[0]
   }
-  // Capitalise first letter
   if (name.length > 0) {
     name = name.charAt(0).toUpperCase() + name.slice(1)
   }
-  return name
-}
-
-function fmtBenchmark(n: number): string {
-  if (n >= 1000000) {
-    const m = n / 1000000
-    return '£' + (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + 'M'
-  }
-  return '£' + n.toLocaleString('en-GB')
-}
-
-const BENCHMARKS: Record<string, Record<string, [number, number]>> = {
-  'We sell services to clients (agency, consultancy, professional services)': {
-    '1 to 10': [8000, 30000], '11 to 50': [40000, 150000], '51 to 200': [150000, 550000],
-    '201 to 500': [400000, 1400000], '500+': [1000000, 3500000],
-  },
-  'We run a practice or clinic (legal, medical, financial)': {
-    '1 to 10': [10000, 35000], '11 to 50': [50000, 180000], '51 to 200': [180000, 650000],
-    '201 to 500': [500000, 1600000], '500+': [1200000, 4000000],
-  },
-  'We operate a location-based business (venue, retail, hospitality)': {
-    '1 to 10': [8000, 25000], '11 to 50': [35000, 120000], '51 to 200': [120000, 400000],
-    '201 to 500': [300000, 1000000], '500+': [800000, 2500000],
-  },
-  "We're a tech company or SaaS": {
-    '1 to 10': [12000, 40000], '11 to 50': [60000, 200000], '51 to 200': [200000, 750000],
-    '201 to 500': [500000, 1800000], '500+': [1500000, 4500000],
-  },
-}
-
-const DEFAULT_BENCHMARKS: Record<string, [number, number]> = {
-  '1 to 10': [8000, 30000], '11 to 50': [40000, 150000], '51 to 200': [150000, 500000],
-  '201 to 500': [400000, 1200000], '500+': [1000000, 3000000],
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  'We sell services to clients (agency, consultancy, professional services)': 'professional services firm',
-  'We run a practice or clinic (legal, medical, financial)': 'practice',
-  'We operate a location-based business (venue, retail, hospitality)': 'location-based business',
-  "We're a tech company or SaaS": 'tech company',
-  'Something else': 'business',
-}
-
-const SIZE_LABELS: Record<string, string> = {
-  '1 to 10': '1 to 10 people',
-  '11 to 50': '11 to 50 people',
-  '51 to 200': '51 to 200 people',
-  '201 to 500': '201 to 500 people',
-  '500+': '500 or more people',
+  return name || 'your business'
 }
 
 function PdfDownloadSection({ audit, waste, report, displayName }: { audit: AuditData; waste: WasteCalculation; report: string; displayName: string }) {
@@ -380,18 +231,15 @@ function PdfDownloadSection({ audit, waste, report, displayName }: { audit: Audi
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        {/* Icon */}
         <div className="shrink-0 w-14 h-14 rounded-2xl bg-[#00c97d]/20 flex items-center justify-center">
           <svg className="w-7 h-7 text-[#00c97d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
           </svg>
         </div>
-        {/* Text */}
         <div className="flex-1 text-center md:text-left">
           <h3 className="text-[20px] font-bold text-white">Your full report is ready</h3>
           <p className="text-[14px] text-[#9ca3af] mt-1">6-page PDF with executive summary, three fixes ranked by ROI, and a 90-day roadmap.</p>
         </div>
-        {/* Button */}
         <button
           onClick={handleDownload}
           disabled={pdfLoading}
@@ -414,14 +262,6 @@ function PdfDownloadSection({ audit, waste, report, displayName }: { audit: Audi
   )
 }
 
-function benchmarkLine(businessType: string, companySize: string): string {
-  const typeLabel = TYPE_LABELS[businessType] ?? 'business'
-  const sizeLabel = SIZE_LABELS[companySize] ?? companySize + ' people'
-  const typeBenchmarks = BENCHMARKS[businessType] ?? DEFAULT_BENCHMARKS
-  const [low, high] = typeBenchmarks[companySize] ?? DEFAULT_BENCHMARKS[companySize] ?? [15000, 60000]
-  return `The average ${typeLabel} with ${sizeLabel} loses ${fmtBenchmark(low)} to ${fmtBenchmark(high)} annually to these same inefficiencies.`
-}
-
 const calendarUrl = process.env.NEXT_PUBLIC_CALENDAR_URL ?? 'https://calendly.com/transputec-ai/consultation'
 
 export default function ResultsPage() {
@@ -433,17 +273,40 @@ export default function ResultsPage() {
   const fetchedRef = useRef(false)
   const reportFetchedRef = useRef(false)
 
+  // Locked/unlocked state
+  const [locked, setLocked] = useState(true)
+  const [revealing, setRevealing] = useState(false)
+  const [toastEmail, setToastEmail] = useState('')
+  const [toastVisible, setToastVisible] = useState(false)
+
+  // Overlay form state
+  const [overlayEmail, setOverlayEmail] = useState('')
+  const [overlayWebsite, setOverlayWebsite] = useState('')
+  const [personalEmailWarning, setPersonalEmailWarning] = useState(false)
+  const [overlaySubmitting, setOverlaySubmitting] = useState(false)
+  const [overlaySubmitAttempted, setOverlaySubmitAttempted] = useState(false)
+
   useEffect(() => {
     if (fetchedRef.current) return
     fetchedRef.current = true
     fetch(`/api/audit/${id}`)
       .then(r => r.json())
-      .then(d => { if (d.audit) setAudit(d.audit); setLoading(false) })
+      .then(d => {
+        if (d.audit) {
+          setAudit(d.audit)
+          // If contact email exists and is not pending, unlock immediately (chat flow)
+          if (d.audit.contact_email && d.audit.contact_email !== 'pending') {
+            setLocked(false)
+          }
+        }
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [id])
 
+  // Trigger report generation — only when unlocked (contact provided)
   useEffect(() => {
-    if (!audit || reportFetchedRef.current) return
+    if (!audit || reportFetchedRef.current || locked) return
     reportFetchedRef.current = true
     if (audit.ai_report) { setReport(audit.ai_report); return }
     setReportLoading(true)
@@ -459,7 +322,50 @@ export default function ResultsPage() {
       .then(d => { if (d.report) setReport(d.report) })
       .catch(() => {})
       .finally(() => setReportLoading(false))
-  }, [audit])
+  }, [audit, locked])
+
+  const handleReveal = async () => {
+    setOverlaySubmitAttempted(true)
+    if (!overlayEmail.trim() || !overlayWebsite.trim()) return
+
+    setOverlaySubmitting(true)
+    const isPersonal = isPersonalEmailDomain(overlayEmail)
+    const normalisedWebsite = normaliseWebsite(overlayWebsite)
+
+    try {
+      // Update the audit record with contact info
+      await fetch(`/api/audit/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_email: overlayEmail.trim(),
+          company_name: normalisedWebsite,
+          personal_email: isPersonal,
+        }),
+      })
+
+      // Update local audit state so report generation uses the real data
+      setAudit(prev => prev ? {
+        ...prev,
+        contact_email: overlayEmail.trim(),
+        contact_name: overlayEmail.trim().split('@')[0],
+        company_name: normalisedWebsite,
+      } : prev)
+
+      // Start reveal animation
+      setRevealing(true)
+      setTimeout(() => {
+        setLocked(false)
+        setRevealing(false)
+        // Show toast
+        setToastEmail(overlayEmail.trim())
+        setToastVisible(true)
+        setTimeout(() => setToastVisible(false), 4000)
+      }, 400)
+    } catch {
+      setOverlaySubmitting(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -485,9 +391,25 @@ export default function ResultsPage() {
   const fixes = report ? parseFixes(report) : []
   const displayName = formatCompanyName(audit.company_name)
   const weeklyLoss = Math.round(w.totalWaste / 52 / 100) * 100
+  const overlayReady = overlayEmail.trim().length > 0 && overlayWebsite.trim().length > 0
 
   return (
     <div className="relative min-h-screen bg-white text-[#1a1a2e]">
+      {/* ═══ TOAST ═══ */}
+      <AnimatePresence>
+        {toastVisible && (
+          <motion.div
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#1a1a2e] text-white text-[14px] px-6 py-3 rounded-full shadow-lg"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            Report sent to {toastEmail}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ═══ COLORBENDS BG ═══ */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-10">
         <ColorBends
@@ -520,7 +442,7 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* ═══ SECTION 1: THE NUMBER ═══ */}
+      {/* ═══ SECTION 1: THE NUMBER — always visible ═══ */}
       <section className="relative z-10 pt-16 pb-24 px-6 text-center">
         <motion.p
           className="text-[20px] text-[#999]"
@@ -556,7 +478,7 @@ export default function ResultsPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          That is approximately {fmt(Math.round(w.revenueAtRisk / 52 / 100) * 100)} in missed revenue every week.
+          That is approximately {fmt(weeklyLoss)} in missed revenue every week.
         </motion.p>
 
         <motion.div
@@ -595,128 +517,300 @@ export default function ResultsPage() {
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
 
-      {/* ═══ SECTION 2: THE THREE FIXES ═══ */}
-      <FixesSection fixes={fixes} companyName={displayName} loading={reportLoading} />
-
-      {/* ═══ SECTION 3: HOW WE CALCULATED THIS ═══ */}
-      <section className="relative z-10 py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <motion.p
-            className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#bbb] mb-10 text-center"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            How we calculated this
-          </motion.p>
-
+      {/* ═══ FIRST FIX CARD — partially visible in locked state ═══ */}
+      {fixes.length > 0 && (
+        <section className="relative z-10 py-24 px-6 max-w-4xl mx-auto">
           <motion.div
-            className="rounded-2xl bg-white border border-[#eee] p-8 md:p-10 shadow-sm"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="space-y-4 text-[15px] text-[#444] font-mono leading-[1.8]">
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Daily calls received</span>
-                <span className="font-semibold text-[#1a1a2e]">{m.dailyCallsReceived}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Missed or unanswered</span>
-                <span className="font-semibold text-[#1a1a2e]">{m.missedPercent}% = {m.missedCallsPerDay} calls per day{w.missedRateAssumed ? ' *' : ''}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Annual missed calls</span>
-                <span className="font-semibold text-[#1a1a2e]">{m.annualMissedCalls.toLocaleString('en-GB')}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Converted to clients at {m.conversionPercent}%{w.conversionRateAssumed ? ' *' : ''}</span>
-                <span className="font-semibold text-[#1a1a2e]">{m.lostClientsPerYear} lost clients per year</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Average client value</span>
-                <span className="font-semibold text-[#1a1a2e]">{fmt(m.avgClientValue)}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">Base revenue at risk</span>
-                <span className="font-semibold text-[#1a1a2e]">{fmt(m.baseRevenueAtRisk)}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
-                <span className="text-[#888]">After hours adjustment ({m.afterHoursMultiplier}x)</span>
-                <span className="font-semibold text-[#1a1a2e]">{fmt(Math.round(m.baseRevenueAtRisk * m.afterHoursMultiplier))}</span>
-              </div>
-              <div className="flex justify-between pt-2">
-                <span className="font-bold text-[#1a1a2e]">Total annual revenue at risk</span>
-                <span className="font-bold text-[#00D084] text-[17px]">{fmt(m.adjustedRevenueAtRisk)}</span>
-              </div>
-            </div>
-
-            {(w.missedRateAssumed || w.conversionRateAssumed) && (
-              <p className="mt-6 text-[12px] text-[#999]">
-                * Assumed value — you selected &ldquo;Not sure&rdquo; or did not answer this question.
-                {w.missedRateAssumed ? ' Missed rate defaulted to 20%.' : ''}
-                {w.conversionRateAssumed ? ' Conversion rate defaulted to 15%.' : ''}
-              </p>
-            )}
-
-            {m.capApplied && (
-              <p className="mt-4 text-[12px] text-[#d97706]">{w.capReason}</p>
-            )}
+            <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-serif text-[#1a1a2e] mb-4 text-center">
+              The three highest-ROI fixes for {displayName}
+            </h2>
+            <p className="text-[17px] text-[#999] text-center mb-14">
+              Most businesses we work with recover the cost of implementation within 60 days.
+            </p>
           </motion.div>
 
-          <p className="mt-4 text-[13px] text-[#bbb] text-center">
-            All figures use conservative midpoints derived from your inputs. Every assumption is labelled above.
-          </p>
-        </div>
-      </section>
-
-      {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
-      {report && !reportLoading && (
-        <PdfDownloadSection audit={audit} waste={w} report={report} displayName={displayName} />
+          {/* First fix — name + impact visible, descriptions blurred when locked */}
+          <motion.div
+            className="rounded-2xl bg-white border border-[#eee] p-8 md:p-12 shadow-sm"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-5%' }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="flex items-start justify-between gap-4 mb-8">
+              <h3 className="text-[24px] font-bold text-[#1a1a2e] leading-snug">{fixes[0].name}</h3>
+              <span className="shrink-0 text-[16px] font-semibold text-[#00D084]">{fixes[0].impact}</span>
+            </div>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 transition-all duration-400 ${locked ? 'blur-[8px] select-none' : ''}`}>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#d97706] mb-3">Right now</p>
+                <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fixes[0].now)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#00D084] mb-3">After the fix</p>
+                <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fixes[0].after)}</p>
+              </div>
+            </div>
+          </motion.div>
+        </section>
       )}
 
-      {/* ═══ SECTION 5: CTA ═══ */}
-      <section className="relative z-10 py-28 px-6 bg-[#f5f5f5]/80 backdrop-blur-sm border-t border-[#e5e5e5]">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-serif text-[#1a1a2e]">
-            Ready to eliminate this waste?
-          </h2>
-          <p className="mt-5 text-[16px] text-[#999] max-w-xl mx-auto leading-relaxed">
-            We&rsquo;ll walk you through exactly how these numbers were calculated and what fixing them
-            would look like for your business specifically. No pitch. Just the findings.
-          </p>
-          <a
-            href="https://calendly.com/jorge-linklemon/30min"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 inline-block rounded-full bg-[#00D084] px-10 py-4 text-[16px] font-semibold text-white hover:bg-[#00b873] transition-colors shadow-lg shadow-[#00D084]/20"
-          >
-            Book a Free Consultation
-          </a>
-          <p className="mt-4 text-[14px] text-[#999]">
-            15 minutes. We look at your specific numbers together. No proposal unless you ask for one.
-          </p>
-          <a
-            href="https://www.linkedin.com/company/kuhnicai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 inline-block text-[#bbb] hover:text-[#0A66C2] transition-colors"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-            </svg>
-          </a>
-        </motion.div>
-      </section>
+      {/* Loading state for fixes when report is generating (only visible when unlocked) */}
+      {!locked && reportLoading && <AnalysingMessages />}
 
+      {/* ═══ BLURRED SECTION — everything else ═══ */}
+      <div className="relative">
+        <div
+          className={`transition-all duration-400 ease-out ${locked || revealing ? 'blur-[8px] pointer-events-none select-none' : ''}`}
+        >
+          {/* Remaining fix cards */}
+          {fixes.length > 1 && (
+            <div className="relative z-10 px-6 max-w-4xl mx-auto space-y-6 -mt-12 pb-24">
+              {fixes.slice(1).map((fix, i) => (
+                <motion.div
+                  key={i}
+                  className="rounded-2xl bg-white border border-[#eee] p-8 md:p-12 shadow-sm"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-5%' }}
+                  transition={{ duration: 0.6, delay: (i + 1) * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-8">
+                    <h3 className="text-[24px] font-bold text-[#1a1a2e] leading-snug">{fix.name}</h3>
+                    <span className="shrink-0 text-[16px] font-semibold text-[#00D084]">{fix.impact}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#d97706] mb-3">Right now</p>
+                      <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fix.now)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#00D084] mb-3">After the fix</p>
+                      <p className="text-[18px] font-bold text-[#1a1a2e] leading-[1.6]">{limitToTwoSentences(fix.after)}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {/* ═══ HOW WE CALCULATED THIS ═══ */}
+          <section className="relative z-10 py-24 px-6">
+            <div className="max-w-3xl mx-auto">
+              <motion.p
+                className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#bbb] mb-10 text-center"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                How we calculated this
+              </motion.p>
+
+              <motion.div
+                className="rounded-2xl bg-white border border-[#eee] p-8 md:p-10 shadow-sm"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="space-y-4 text-[15px] text-[#444] font-mono leading-[1.8]">
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Daily calls received</span>
+                    <span className="font-semibold text-[#1a1a2e]">{m.dailyCallsReceived}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Missed or unanswered</span>
+                    <span className="font-semibold text-[#1a1a2e]">{m.missedPercent}% = {m.missedCallsPerDay} calls per day{w.missedRateAssumed ? ' *' : ''}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Annual missed calls</span>
+                    <span className="font-semibold text-[#1a1a2e]">{m.annualMissedCalls.toLocaleString('en-GB')}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Converted to clients at {m.conversionPercent}%{w.conversionRateAssumed ? ' *' : ''}</span>
+                    <span className="font-semibold text-[#1a1a2e]">{m.lostClientsPerYear} lost clients per year</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Average client value</span>
+                    <span className="font-semibold text-[#1a1a2e]">{fmt(m.avgClientValue)}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">Base revenue at risk</span>
+                    <span className="font-semibold text-[#1a1a2e]">{fmt(m.baseRevenueAtRisk)}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0f0f0] pb-3">
+                    <span className="text-[#888]">After hours adjustment ({m.afterHoursMultiplier}x)</span>
+                    <span className="font-semibold text-[#1a1a2e]">{fmt(Math.round(m.baseRevenueAtRisk * m.afterHoursMultiplier))}</span>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <span className="font-bold text-[#1a1a2e]">Total annual revenue at risk</span>
+                    <span className="font-bold text-[#00D084] text-[17px]">{fmt(m.adjustedRevenueAtRisk)}</span>
+                  </div>
+                </div>
+
+                {(w.missedRateAssumed || w.conversionRateAssumed) && (
+                  <p className="mt-6 text-[12px] text-[#999]">
+                    * Assumed value — you selected &ldquo;Not sure&rdquo; or did not answer this question.
+                    {w.missedRateAssumed ? ' Missed rate defaulted to 20%.' : ''}
+                    {w.conversionRateAssumed ? ' Conversion rate defaulted to 15%.' : ''}
+                  </p>
+                )}
+
+                {m.capApplied && (
+                  <p className="mt-4 text-[12px] text-[#d97706]">{w.capReason}</p>
+                )}
+              </motion.div>
+
+              <p className="mt-4 text-[13px] text-[#bbb] text-center">
+                All figures use conservative midpoints derived from your inputs. Every assumption is labelled above.
+              </p>
+            </div>
+          </section>
+
+          {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
+          {report && !reportLoading && !locked && (
+            <PdfDownloadSection audit={audit} waste={w} report={report} displayName={displayName} />
+          )}
+
+          {/* ═══ CTA ═══ */}
+          <section className="relative z-10 py-28 px-6 bg-[#f5f5f5]/80 backdrop-blur-sm border-t border-[#e5e5e5]">
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-serif text-[#1a1a2e]">
+                Ready to eliminate this waste?
+              </h2>
+              <p className="mt-5 text-[16px] text-[#999] max-w-xl mx-auto leading-relaxed">
+                We&rsquo;ll walk you through exactly how these numbers were calculated and what fixing them
+                would look like for your business specifically. No pitch. Just the findings.
+              </p>
+              <a
+                href="https://calendly.com/jorge-linklemon/30min"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-10 inline-block rounded-full bg-[#00D084] px-10 py-4 text-[16px] font-semibold text-white hover:bg-[#00b873] transition-colors shadow-lg shadow-[#00D084]/20"
+              >
+                Book a Free Consultation
+              </a>
+              <p className="mt-4 text-[14px] text-[#999]">
+                15 minutes. We look at your specific numbers together. No proposal unless you ask for one.
+              </p>
+              <a
+                href="https://www.linkedin.com/company/kuhnicai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-10 inline-block text-[#bbb] hover:text-[#0A66C2] transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+              </a>
+            </motion.div>
+          </section>
+        </div>
+
+        {/* ═══ GRADIENT OVERLAY — fades blurred content to white ═══ */}
+        {locked && !revealing && (
+          <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-white" style={{ top: '30%' }} />
+        )}
+
+        {/* ═══ OVERLAY CARD ═══ */}
+        <AnimatePresence>
+          {locked && !revealing && (
+            <motion.div
+              className="fixed inset-0 z-30 flex items-center justify-center px-4"
+              style={{ top: '20%' }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="bg-white rounded-2xl border border-[#e5e7eb] p-8 max-w-[480px] w-full shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+                <h2 className="text-[22px] font-serif text-[#1a1a2e]">Your full breakdown is ready.</h2>
+                <p className="mt-2 text-[15px] text-[#888] leading-[1.7]">
+                  We&rsquo;ll personalise the findings for your specific business before showing you everything. Takes 30 seconds.
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Work email</label>
+                    <input
+                      type="email"
+                      value={overlayEmail}
+                      onChange={e => setOverlayEmail(e.target.value)}
+                      onBlur={() => setPersonalEmailWarning(isPersonalEmailDomain(overlayEmail))}
+                      placeholder="you@yourcompany.co.uk"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                        overlaySubmitAttempted && !overlayEmail.trim()
+                          ? 'border-red-400'
+                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                      }`}
+                    />
+                    {overlaySubmitAttempted && !overlayEmail.trim() && (
+                      <p className="mt-1 text-[13px] text-red-500">We need this to generate your report.</p>
+                    )}
+                    {personalEmailWarning && overlayEmail.trim() && (
+                      <p className="mt-1 text-[13px] text-amber-600">
+                        Looks like a personal email. Please use your work email if you have one, or add your website below so we can find your business.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Website */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Your website</label>
+                    <input
+                      type="text"
+                      value={overlayWebsite}
+                      onChange={e => setOverlayWebsite(e.target.value)}
+                      placeholder="www.yourbusiness.co.uk"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                        overlaySubmitAttempted && !overlayWebsite.trim()
+                          ? 'border-red-400'
+                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                      }`}
+                    />
+                    {overlaySubmitAttempted && !overlayWebsite.trim() && (
+                      <p className="mt-1 text-[13px] text-red-500">We need this to generate your report.</p>
+                    )}
+                    <p className="mt-1 text-[12px] text-[#aaa]">
+                      No website? Paste your Google Business or LinkedIn company page URL instead.
+                    </p>
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    onClick={handleReveal}
+                    disabled={overlaySubmitting || !overlayReady}
+                    className={`w-full h-[52px] rounded-lg text-[15px] font-medium transition-colors ${
+                      overlayReady
+                        ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer'
+                        : 'bg-[#e5e5e5] text-[#999] cursor-not-allowed'
+                    } disabled:opacity-60`}
+                  >
+                    {overlaySubmitting ? (
+                      <span>Generating your report<span className="animate-pulse">...</span></span>
+                    ) : 'Show Me Everything'}
+                  </button>
+
+                  <p className="text-[12px] text-[#aaa] text-center">We do not share your details with anyone. Ever.</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }

@@ -4,32 +4,11 @@ import { useState, useCallback, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const PERSONAL_DOMAINS = new Set([
-  'gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.co.uk',
-  'outlook.com', 'outlook.co.uk', 'yahoo.com', 'yahoo.co.uk',
-  'icloud.com', 'live.com', 'live.co.uk', 'me.com',
-  'btinternet.com', 'sky.com', 'virginmedia.com', 'talktalk.net', 'aol.com',
-])
-
-function isPersonalEmail(email: string): boolean {
-  const domain = email.trim().toLowerCase().split('@')[1]
-  return domain ? PERSONAL_DOMAINS.has(domain) : false
-}
-
-function normaliseWebsite(raw: string): string {
-  let url = raw.trim()
-  if (!url) return ''
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url
-  }
-  return url
-}
-
 interface Screen {
   id: string
   heading: string
   subtext?: string
-  type: 'intro' | 'tiles' | 'contact' | 'mode_select'
+  type: 'intro' | 'tiles' | 'mode_select'
   options?: string[]
   note?: string
 }
@@ -99,11 +78,6 @@ const SCREENS: Screen[] = [
       'Just curious what the number is',
     ],
   },
-  {
-    id: 'contact',
-    heading: 'Almost there. One last thing.',
-    type: 'contact',
-  },
 ]
 
 function Tile({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
@@ -138,14 +112,6 @@ function AuditForm() {
   const [direction, setDirection] = useState(1)
   const [disqualified, setDisqualified] = useState(false)
 
-  // Contact form state
-  const [contactEmail, setContactEmail] = useState('')
-  const [contactWebsite, setContactWebsite] = useState('')
-  const [personalEmailWarning, setPersonalEmailWarning] = useState(false)
-  const [emailTouched, setEmailTouched] = useState(false)
-  const [websiteTouched, setWebsiteTouched] = useState(false)
-  const [submitAttempted, setSubmitAttempted] = useState(false)
-
   // Persist to sessionStorage
   useEffect(() => {
     if (step > 0 || Object.keys(answers).length > 0) {
@@ -163,16 +129,12 @@ function AuditForm() {
 
   const [selectedMode, setSelectedMode] = useState<'form' | 'chat' | null>(null)
 
-  // Hide progress bar on disqualification and contact screens
-  const showProgressBar = !disqualified && screen?.id !== 'contact'
+  const showProgressBar = !disqualified
 
   const canProceed = (() => {
     if (screen.type === 'mode_select') return !!selectedMode
     if (screen.type === 'intro') return true
     if (screen.type === 'tiles') return !!answers[screen.id]
-    if (screen.type === 'contact') {
-      return contactEmail.trim().length > 0 && contactWebsite.trim().length > 0
-    }
     return false
   })()
 
@@ -220,68 +182,27 @@ function AuditForm() {
     setAnswers({})
     setDisqualified(false)
     setSelectedMode(null)
-    setContactEmail('')
-    setContactWebsite('')
-    setPersonalEmailWarning(false)
-    setEmailTouched(false)
-    setWebsiteTouched(false)
-    setSubmitAttempted(false)
     setError('')
   }
 
   const [loadingMessage, setLoadingMessage] = useState('')
 
   const handleSubmit = async () => {
-    setSubmitAttempted(true)
-    if (!contactEmail.trim() || !contactWebsite.trim()) return
-
     setSubmitting(true)
     setError('')
-    setLoadingMessage('Generating your report')
-
-    const isPersonal = isPersonalEmail(contactEmail)
-    const normalisedWebsite = normaliseWebsite(contactWebsite)
-
-    const fullAnswers = {
-      ...answers,
-      contact_email: contactEmail.trim(),
-      company_name: normalisedWebsite,
-      contact_name: contactEmail.trim().split('@')[0],
-      personal_email: isPersonal ? 'true' : 'false',
-    }
+    setLoadingMessage('Calculating your number')
 
     try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 8000)
-
       const res = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: fullAnswers, sdm_name: sdmName, sdm_email: sdmEmail }),
-        signal: controller.signal,
+        body: JSON.stringify({ answers, sdm_name: sdmName, sdm_email: sdmEmail }),
       })
-      clearTimeout(timeout)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to submit')
       sessionStorage.removeItem('audit_form')
       router.push(`/results/${data.id}`)
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        // Timeout — try once more without abort, API will handle scrape timeout internally
-        try {
-          const res = await fetch('/api/audit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answers: fullAnswers, sdm_name: sdmName, sdm_email: sdmEmail, skip_scrape: true }),
-          })
-          const data = await res.json()
-          if (res.ok) {
-            sessionStorage.removeItem('audit_form')
-            router.push(`/results/${data.id}`)
-            return
-          }
-        } catch {}
-      }
       const message = err instanceof Error ? err.message : 'Something went wrong'
       setError(message)
       setSubmitting(false)
@@ -470,105 +391,37 @@ function AuditForm() {
               </div>
             )}
 
-            {screen.type === 'contact' && (
-              <div className="mt-2">
-                <p className="text-[15px] text-[#888]">
-                  We&rsquo;ll look up your business before calculating your number so the results are specific to you, not a generic template.
-                </p>
-
-                <div className="mt-8 space-y-4">
-                  {/* Email field */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Work email</label>
-                    <input
-                      type="email"
-                      value={contactEmail}
-                      onChange={e => setContactEmail(e.target.value)}
-                      onBlur={() => {
-                        setEmailTouched(true)
-                        setPersonalEmailWarning(isPersonalEmail(contactEmail))
-                      }}
-                      placeholder="you@yourcompany.co.uk"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
-                        submitAttempted && !contactEmail.trim()
-                          ? 'border-red-400 focus:border-red-400'
-                          : 'border-[#e5e5e5] focus:border-[#00D084]'
-                      }`}
-                    />
-                    {submitAttempted && !contactEmail.trim() && (
-                      <p className="mt-1.5 text-[13px] text-red-500">We need this to generate your report.</p>
-                    )}
-                    {emailTouched && personalEmailWarning && contactEmail.trim() && (
-                      <p className="mt-1.5 text-[13px] text-amber-600">
-                        Looks like a personal email. Please use your work email if you have one, or add your website below so we can find your business.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Website field */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Your website</label>
-                    <input
-                      type="text"
-                      value={contactWebsite}
-                      onChange={e => setContactWebsite(e.target.value)}
-                      onBlur={() => setWebsiteTouched(true)}
-                      placeholder="www.yourbusiness.co.uk"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
-                        submitAttempted && !contactWebsite.trim()
-                          ? 'border-red-400 focus:border-red-400'
-                          : 'border-[#e5e5e5] focus:border-[#00D084]'
-                      }`}
-                    />
-                    {submitAttempted && !contactWebsite.trim() && (
-                      <p className="mt-1.5 text-[13px] text-red-500">We need this to generate your report.</p>
-                    )}
-                    <p className="mt-1.5 text-[12px] text-[#aaa]">
-                      We use this to personalise your report. No website? Paste your Google Business or LinkedIn company page URL instead.
-                    </p>
-                  </div>
-
-                  {/* Submit button */}
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !canProceed}
-                    className={`w-full rounded-full py-3.5 text-[15px] font-semibold transition-colors ${
-                      canProceed
-                        ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer'
-                        : 'bg-[#e5e5e5] text-[#999] cursor-not-allowed'
-                    } disabled:opacity-60`}
-                  >
-                    {submitting ? (
-                      <span>Generating your report<span className="animate-pulse">...</span></span>
-                    ) : 'Show Me My Number'}
-                  </button>
-
-                  <p className="text-[12px] text-[#aaa] text-center">We do not share your details with anyone. Ever.</p>
-                </div>
-              </div>
-            )}
-
             {error && <p className="mt-4 text-[13px] text-red-500">{error}</p>}
 
-            {screen.type !== 'intro' && screen.type !== 'mode_select' && screen.type !== 'contact' && <div className="mt-10 flex items-center justify-between">
+            {screen.type !== 'intro' && screen.type !== 'mode_select' && <div className="mt-10 flex items-center justify-between">
               {step > 0 ? (
                 <button onClick={handleBack} className="text-[14px] text-[#aaa] hover:text-[#1a1a2e] transition-colors">
                   &larr; Back
                 </button>
               ) : <div />}
 
-              <button
-                onClick={handleNext}
-                disabled={!canProceed}
-                className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Continue &nbsp;&rarr;
-              </button>
+              {isLastStep ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={!canProceed || submitting}
+                  className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {submitting ? 'Calculating...' : 'Show Me My Number'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceed}
+                  className="rounded-full bg-[#00D084] px-8 py-3.5 text-[15px] font-semibold text-white hover:bg-[#00e090] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Continue &nbsp;&rarr;
+                </button>
+              )}
             </div>}
           </motion.div>
         </AnimatePresence>
 
-        {screen.type !== 'intro' && screen.type !== 'mode_select' && screen.type !== 'contact' && <div className="mt-8 text-center">
+        {screen.type !== 'intro' && screen.type !== 'mode_select' && !isLastStep && <div className="mt-8 text-center">
           <span className="text-[12px] text-[#bbb]">{step} of {totalSteps - 1}</span>
         </div>}
       </div>

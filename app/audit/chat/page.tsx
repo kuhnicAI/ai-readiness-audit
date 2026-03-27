@@ -159,6 +159,9 @@ function ChatAudit() {
         } else {
           setCollected(data.collectedData)
           setProgress(100)
+          // Add the contact prompt as a new assistant message
+          const contactPrompt: Message = { role: 'assistant', content: 'Before I show you the full breakdown \u2014 where should I send your report and what is your website so I can personalise the findings?' }
+          setMessages(prev => [...prev, contactPrompt])
         }
       }
     } catch {
