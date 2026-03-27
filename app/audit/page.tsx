@@ -201,7 +201,7 @@ function AuditForm() {
       setTimeout(() => {
         setTransitionLine('')
         advanceStep()
-      }, 2600)
+      }, 4000)
       return
     }
 
@@ -267,8 +267,8 @@ function AuditForm() {
         <div className="text-center max-w-2xl mx-auto px-6">
           <SplitText
             text={transitionLine}
-            className="text-[clamp(1.6rem,4vw,2.4rem)] font-serif text-[#888]"
-            delay={30}
+            className="text-[clamp(1.8rem,4.5vw,2.8rem)] font-serif text-[#00D084]"
+            delay={25}
             duration={0.8}
             ease="power3.out"
             splitType="chars"
