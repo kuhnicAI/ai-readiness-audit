@@ -257,6 +257,22 @@ function AuditForm() {
     exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   }
 
+  // ── Transition screen ──
+  if (transitionLine) {
+    return (
+      <div className="min-h-screen bg-white text-[#1a1a2e] flex items-center justify-center">
+        <motion.p
+          className="text-[clamp(1.4rem,3.5vw,2rem)] font-serif text-[#888] text-center max-w-xl mx-auto px-6 leading-snug"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          {transitionLine}
+        </motion.p>
+      </div>
+    )
+  }
+
   // ── Disqualification screen ──
   if (disqualified) {
     return (
@@ -426,16 +442,6 @@ function AuditForm() {
                 ))}
                 {screen.note && (
                   <p className="mt-4 text-[13px] text-[#555]">{screen.note}</p>
-                )}
-                {transitionLine && (
-                  <motion.p
-                    className="mt-5 text-[15px] text-[#888]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {transitionLine}
-                  </motion.p>
                 )}
               </div>
             )}
