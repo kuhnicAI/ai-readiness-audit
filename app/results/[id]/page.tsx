@@ -727,33 +727,33 @@ export default function ResultsPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="bg-[#00D084] rounded-2xl p-8 max-w-[480px] w-full shadow-[0_8px_32px_rgba(0,208,132,0.25)]">
-                <h2 className="text-[22px] font-serif text-white">Your full breakdown is ready.</h2>
-                <p className="mt-2 text-[15px] text-white/80 leading-[1.7]">
+              <div className="bg-[#1a1a2e] rounded-2xl p-10 max-w-[560px] w-full shadow-[0_12px_48px_rgba(0,0,0,0.2)]">
+                <h2 className="text-[28px] font-serif text-white">Your full breakdown is ready.</h2>
+                <p className="mt-3 text-[16px] text-[#9ca3af] leading-[1.7]">
                   We&rsquo;ll personalise the findings for your specific business before showing you everything. Takes 30 seconds.
                 </p>
 
-                <div className="mt-6 space-y-3">
+                <div className="mt-8 space-y-4">
                   {/* Email */}
                   <div>
-                    <label className="block text-[13px] font-medium text-white/70 mb-1.5">Work email</label>
+                    <label className="block text-[13px] font-medium text-[#9ca3af] mb-1.5">Work email</label>
                     <input
                       type="email"
                       value={overlayEmail}
                       onChange={e => setOverlayEmail(e.target.value)}
                       onBlur={() => setPersonalEmailWarning(isPersonalEmailDomain(overlayEmail))}
                       placeholder="you@yourcompany.co.uk"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#555] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayEmail.trim()
                           ? 'border-red-400'
-                          : 'border-white/30 focus:border-white'
+                          : 'border-[#2a2a40] focus:border-[#00D084]'
                       }`}
                     />
                     {overlaySubmitAttempted && !overlayEmail.trim() && (
-                      <p className="mt-1 text-[13px] text-white font-medium">We need this to generate your report.</p>
+                      <p className="mt-1 text-[13px] text-red-400">We need this to generate your report.</p>
                     )}
                     {personalEmailWarning && overlayEmail.trim() && (
-                      <p className="mt-1 text-[13px] text-yellow-100">
+                      <p className="mt-1 text-[13px] text-amber-400">
                         Looks like a personal email. Please use your work email if you have one, or add your website below so we can find your business.
                       </p>
                     )}
@@ -761,22 +761,22 @@ export default function ResultsPage() {
 
                   {/* Website */}
                   <div>
-                    <label className="block text-[13px] font-medium text-white/70 mb-1.5">Your website</label>
+                    <label className="block text-[13px] font-medium text-[#9ca3af] mb-1.5">Your website</label>
                     <input
                       type="text"
                       value={overlayWebsite}
                       onChange={e => setOverlayWebsite(e.target.value)}
                       placeholder="www.yourbusiness.co.uk"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#555] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayWebsite.trim()
                           ? 'border-red-400'
-                          : 'border-white/30 focus:border-white'
+                          : 'border-[#2a2a40] focus:border-[#00D084]'
                       }`}
                     />
                     {overlaySubmitAttempted && !overlayWebsite.trim() && (
-                      <p className="mt-1 text-[13px] text-white font-medium">We need this to generate your report.</p>
+                      <p className="mt-1 text-[13px] text-red-400">We need this to generate your report.</p>
                     )}
-                    <p className="mt-1 text-[12px] text-white/60">
+                    <p className="mt-1 text-[12px] text-[#666]">
                       No website? Paste your Google Business or LinkedIn company page URL instead.
                     </p>
                   </div>
@@ -785,10 +785,10 @@ export default function ResultsPage() {
                   <button
                     onClick={handleReveal}
                     disabled={overlaySubmitting || !overlayReady}
-                    className={`w-full h-[52px] rounded-lg text-[15px] font-semibold transition-colors ${
+                    className={`w-full h-[56px] rounded-xl text-[16px] font-semibold transition-colors ${
                       overlayReady
-                        ? 'bg-[#1a1a2e] text-white hover:bg-[#0f0f1e] cursor-pointer'
-                        : 'bg-white/30 text-white/50 cursor-not-allowed'
+                        ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer shadow-lg shadow-[#00D084]/20'
+                        : 'bg-[#2a2a40] text-[#555] cursor-not-allowed'
                     } disabled:opacity-70`}
                   >
                     {overlaySubmitting ? (
@@ -796,7 +796,7 @@ export default function ResultsPage() {
                     ) : 'Show Me Everything'}
                   </button>
 
-                  <p className="text-[12px] text-white/50 text-center">We do not share your details with anyone. Ever.</p>
+                  <p className="text-[12px] text-[#555] text-center">We do not share your details with anyone. Ever.</p>
                 </div>
               </div>
             </motion.div>
