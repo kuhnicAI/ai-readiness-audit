@@ -101,7 +101,7 @@ const SCREENS: Screen[] = [
   },
   {
     id: 'contact',
-    heading: 'Where should we send your report?',
+    heading: 'Almost there. One last thing.',
     type: 'contact',
   },
 ]
@@ -473,9 +473,8 @@ function AuditForm() {
             {screen.type === 'contact' && (
               <div className="mt-2">
                 <p className="text-[15px] text-[#888]">
-                  We&rsquo;ll look up your business before writing the report so the findings are specific to you, not a generic template.
+                  We&rsquo;ll look up your business before calculating your number so the results are specific to you, not a generic template.
                 </p>
-                <p className="mt-2 text-[13px] text-[#aaa]">Expect it within 10 minutes.</p>
 
                 <div className="mt-8 space-y-4">
                   {/* Email field */}
