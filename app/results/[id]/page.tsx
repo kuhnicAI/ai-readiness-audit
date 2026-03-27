@@ -743,7 +743,7 @@ export default function ResultsPage() {
                       onChange={e => setOverlayEmail(e.target.value)}
                       onBlur={() => setPersonalEmailWarning(isPersonalEmailDomain(overlayEmail))}
                       placeholder="you@yourcompany.co.uk"
-                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#555] focus:outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#888] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayEmail.trim()
                           ? 'border-red-400'
                           : 'border-[#2a2a40] focus:border-[#00D084]'
@@ -767,7 +767,7 @@ export default function ResultsPage() {
                       value={overlayWebsite}
                       onChange={e => setOverlayWebsite(e.target.value)}
                       placeholder="www.yourbusiness.co.uk"
-                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#555] focus:outline-none transition-colors ${
+                      className={`w-full rounded-xl border bg-[#0f0f1e] px-4 py-3.5 text-[15px] text-white placeholder-[#888] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayWebsite.trim()
                           ? 'border-red-400'
                           : 'border-[#2a2a40] focus:border-[#00D084]'
@@ -776,7 +776,7 @@ export default function ResultsPage() {
                     {overlaySubmitAttempted && !overlayWebsite.trim() && (
                       <p className="mt-1 text-[13px] text-red-400">We need this to generate your report.</p>
                     )}
-                    <p className="mt-1 text-[12px] text-[#666]">
+                    <p className="mt-1 text-[12px] text-[#9ca3af]">
                       No website? Paste your Google Business or LinkedIn company page URL instead.
                     </p>
                   </div>
@@ -796,7 +796,7 @@ export default function ResultsPage() {
                     ) : 'Show Me Everything'}
                   </button>
 
-                  <p className="text-[12px] text-[#555] text-center">We do not share your details with anyone. Ever.</p>
+                  <p className="text-[12px] text-[#9ca3af] text-center">We do not share your details with anyone. Ever.</p>
                 </div>
               </div>
             </motion.div>
