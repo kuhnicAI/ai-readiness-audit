@@ -99,10 +99,41 @@ function ChatAudit() {
   }, [])
 
   // Disqualification check — low call volume alone is enough
-  const checkDisqualification = useCallback((data: Record<string, string>) => {
-    const weeklyInbound = data.dailyCalls ?? data.weeklyInbound ?? ''
-    return weeklyInbound === 'Under 20 per week' || weeklyInbound === 'Under 10'
+  const LOW_VOLUME_PATTERNS = [
+    'under 20 per week', 'under 20', 'fewer than 20', 'less than 20',
+    'under 10 per week', 'under 10', 'fewer than 10', 'less than 10',
+    '5 to 10', '10 or less', 'maybe 10', 'about 10', 'around 10',
+    'a few a day', 'a couple a day', '2 or 3', '1 or 2', 'very few',
+  ]
+
+  const DQ_MESSAGE = "Based on that, an AI voice agent probably is not your biggest win right now. This tool is designed for businesses where missed calls are a consistent and costly problem \u2014 typically 20 or more calls a week at minimum. At your current volume the ROI just will not be there yet.\n\nWhat you likely need is a simpler automation setup to handle the calls you do get more efficiently. You can find out more at kuhnic.ai."
+
+  const isLowVolumeAnswer = useCallback((text: string) => {
+    const lower = text.trim().toLowerCase()
+    return LOW_VOLUME_PATTERNS.some(p => lower === p || lower.includes(p))
   }, [])
+
+  const triggerDisqualification = useCallback((userText: string, businessType: string | null) => {
+    fetch('/api/audit/disqualify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_type: businessType,
+        weekly_inbound: userText,
+        missed_rate: null,
+      }),
+    }).catch(() => {})
+
+    const dqMsg: Message = { role: 'assistant', content: DQ_MESSAGE }
+    setMessages(prev => [...prev, dqMsg])
+    setStreaming(true)
+    setDisqualified(true)
+    setShowInlineOptions(false)
+    setInlineOptions([])
+    setIsTextQuestion(false)
+    setProgress(100)
+    scrollToBottom()
+  }, [scrollToBottom])
 
   const sendToApi = useCallback(async (newMessages: Message[]) => {
     setLoading(true)
@@ -134,35 +165,11 @@ function ChatAudit() {
       setProgress(Math.min((answeredCount / TOTAL_VARIABLES) * 100, 95))
 
       if (data.isComplete && data.collectedData) {
-        // Check for disqualification before showing contact form
-        if (checkDisqualification(data.collectedData)) {
-          // Log disqualification
-          fetch('/api/audit/disqualify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              business_type: data.collectedData.businessType ?? null,
-              weekly_inbound: data.collectedData.dailyCalls ?? data.collectedData.weeklyInbound ?? null,
-              missed_rate: data.collectedData.missedRate ?? null,
-            }),
-          }).catch(() => {})
-
-          // Replace the last assistant message with the disqualification message
-          const dqMessage = "A voice agent probably is not your biggest win right now. This calculator is built for businesses fielding a serious volume of inbound calls where missed or unanswered calls are costing real money. At your current call volume, the numbers will not stack up enough to justify it.\n\nWhat you likely need is a simpler automation setup to handle the calls you do get more efficiently. We can help with that too — visit kuhnic.ai to see what else we do, or start again if you think you answered differently than you meant to."
-          setMessages(prev => {
-            const updated = [...prev]
-            updated[updated.length - 1] = { role: 'assistant', content: dqMessage }
-            return updated
-          })
-          setDisqualified(true)
-          setProgress(100)
-        } else {
-          setCollected(data.collectedData)
-          setProgress(100)
-          // Add the contact prompt as a new assistant message
-          const contactPrompt: Message = { role: 'assistant', content: 'Before I show you the full breakdown \u2014 where should I send your report and what is your website so I can personalise the findings?' }
-          setMessages(prev => [...prev, contactPrompt])
-        }
+        setCollected(data.collectedData)
+        setProgress(100)
+        // Add the contact prompt as a new assistant message
+        const contactPrompt: Message = { role: 'assistant', content: 'Before I show you the full breakdown \u2014 where should I send your report and what is your website so I can personalise the findings?' }
+        setMessages(prev => [...prev, contactPrompt])
       }
     } catch {
       setLoading(false)
@@ -170,7 +177,7 @@ function ChatAudit() {
       setStreaming(false)
     }
     scrollToBottom()
-  }, [scrollToBottom, checkDisqualification])
+  }, [scrollToBottom])
 
   useEffect(() => {
     if (initRef.current) return
@@ -196,8 +203,19 @@ function ChatAudit() {
     const updated = [...messages, userMsg]
     setMessages(updated)
     scrollToBottom()
+
+    // Disqualification gate: check if this is a low call volume answer
+    // Only check after at least 1 prior user answer (business type)
+    const priorUserCount = messages.filter(m => m.role === 'user').length
+    if (priorUserCount >= 1 && isLowVolumeAnswer(text)) {
+      // Extract business type from the first user message
+      const firstUserMsg = messages.find(m => m.role === 'user')
+      triggerDisqualification(text, firstUserMsg?.content ?? null)
+      return
+    }
+
     sendToApi(updated)
-  }, [messages, scrollToBottom, sendToApi])
+  }, [messages, scrollToBottom, sendToApi, isLowVolumeAnswer, triggerDisqualification])
 
   const handleSendText = useCallback(() => {
     if (!textInput.trim()) return
