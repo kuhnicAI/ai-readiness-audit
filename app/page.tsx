@@ -210,11 +210,20 @@ export default function HomePage() {
           </motion.p>
 
           <motion.div
-            className="mt-10"
+            className="mt-10 flex flex-col items-center gap-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#00D084]/30 bg-[#00D084]/[0.06] px-5 py-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00D084] opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00D084]" />
+              </span>
+              <span className="text-[14px] font-medium text-[#1a1a2e]">
+                For businesses fielding <span className="font-bold text-[#00D084]">20+ inbound calls/week</span>
+              </span>
+            </div>
             <button
               onClick={handleStartAudit}
               className="rounded-full bg-[#00D084] px-8 py-4 text-[15px] font-semibold text-white hover:bg-[#00b873] transition-colors shadow-lg shadow-[#00D084]/20"
@@ -222,15 +231,6 @@ export default function HomePage() {
               Calculate My Lost Revenue Now &nbsp;&rarr;
             </button>
           </motion.div>
-
-          <motion.p
-            className="mt-6 text-[13px] text-[#aaa] max-w-md mx-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
-          >
-            Built for businesses fielding 20+ inbound calls a week where every unanswered ring is revenue walking out the door.
-          </motion.p>
         </div>
 
         <motion.div
