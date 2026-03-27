@@ -168,6 +168,7 @@ function AnalysingMessages() {
 }
 
 function formatCompanyName(raw: string): string {
+  if (!raw || raw === 'pending') return 'your business'
   let name = raw.trim()
   name = name.replace(/^https?:\/\//, '')
   name = name.replace(/^www\./, '')
@@ -475,8 +476,9 @@ export default function ResultsPage() {
             <p className="mt-1 text-[11px] text-[#bbb]">Based on UK average salary</p>
           </div>
           {w.showNetOpportunity && !w.consistencyError && (
-            <div className="text-center rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6">
-              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#00D084]">{fmt(w.netOpportunity)}</p>
+            <div className="text-center rounded-2xl bg-[#f8f9fa] border border-[#eee] p-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#00D084] mb-2">Your opportunity</p>
+              <p className="text-[clamp(1.4rem,3vw,2rem)] font-serif text-[#1a1a2e]">{fmt(w.netOpportunity)}</p>
               <p className="mt-2 text-[14px] text-[#999]">Estimated annual upside of switching to AI voice</p>
             </div>
           )}
@@ -491,6 +493,18 @@ export default function ResultsPage() {
           Most businesses we work with recover the full cost of implementation within the first 30 to 60 days.
         </motion.p>
       </section>
+
+      {/* Tension line — visible in locked state */}
+      {locked && (
+        <motion.p
+          className="relative z-10 text-center text-[17px] text-[#888] mt-2 mb-8 px-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 0.5 }}
+        >
+          Your three highest-ROI fixes are below.
+        </motion.p>
+      )}
 
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
@@ -700,15 +714,15 @@ export default function ResultsPage() {
 
         {/* ═══ GRADIENT OVERLAY — fades blurred content to white ═══ */}
         {locked && !revealing && (
-          <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-white" style={{ top: '30%' }} />
+          <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-transparent via-white/70 to-white" style={{ top: '10%' }} />
         )}
 
         {/* ═══ OVERLAY CARD ═══ */}
         <AnimatePresence>
           {locked && !revealing && (
             <motion.div
-              className="fixed inset-0 z-30 flex items-center justify-center px-4"
-              style={{ top: '20%' }}
+              className="absolute inset-x-0 z-30 flex justify-center px-4"
+              style={{ top: '24px' }}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -775,8 +789,8 @@ export default function ResultsPage() {
                     className={`w-full h-[52px] rounded-lg text-[15px] font-medium transition-colors ${
                       overlayReady
                         ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer'
-                        : 'bg-[#e5e5e5] text-[#999] cursor-not-allowed'
-                    } disabled:opacity-60`}
+                        : 'bg-[#d1d5db] text-[#6b7280] cursor-not-allowed'
+                    } disabled:opacity-70`}
                   >
                     {overlaySubmitting ? (
                       <span>Generating your report<span className="animate-pulse">...</span></span>
