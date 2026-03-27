@@ -105,7 +105,7 @@ function AuditForm() {
   const savedForm = typeof window !== 'undefined' ? sessionStorage.getItem('audit_form') : null
   const restoredForm = savedForm ? JSON.parse(savedForm) : null
 
-  const [step, setStep] = useState<number>(restoredForm?.step ?? 0)
+  const [step, setStep] = useState<number>(Math.min(restoredForm?.step ?? 0, SCREENS.length - 1))
   const [answers, setAnswers] = useState<Record<string, string>>(restoredForm?.answers ?? {})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
