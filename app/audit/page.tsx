@@ -198,7 +198,7 @@ function AuditForm() {
       setTimeout(() => {
         setTransitionLine('')
         advanceStep()
-      }, 2200)
+      }, 2600)
       return
     }
 
@@ -260,17 +260,24 @@ function AuditForm() {
   // ── Transition screen ──
   if (transitionLine) {
     return (
-      <div className="min-h-screen bg-white text-[#1a1a2e] flex items-center justify-center">
-        <motion.p
+      <div className="min-h-screen bg-white text-[#1a1a2e] flex items-center justify-center overflow-hidden">
+        <motion.div
           key={transitionLine}
-          className="text-[clamp(1.4rem,3.5vw,2rem)] font-serif text-[#888] text-center max-w-xl mx-auto px-6 leading-snug"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center max-w-xl mx-auto px-6"
+          initial={{ opacity: 0, y: 30, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          {transitionLine}
-        </motion.p>
+          <motion.div
+            className="w-8 h-[2px] bg-[#00D084] mx-auto mb-6 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: 32 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          />
+          <p className="text-[clamp(1.4rem,3.5vw,2rem)] font-serif text-[#888] leading-snug">
+            {transitionLine}
+          </p>
+        </motion.div>
       </div>
     )
   }
