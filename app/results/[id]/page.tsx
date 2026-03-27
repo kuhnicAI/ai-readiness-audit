@@ -509,10 +509,10 @@ export default function ResultsPage() {
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
 
-      {/* Report ready label — below the divider */}
-      <div className="relative z-10 mt-10 mb-2 text-center">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#00D084]">Your full report is ready</p>
-      </div>
+      {/* ═══ DOWNLOAD — above the fixes ═══ */}
+      {report && !reportLoading && !locked && (
+        <PdfDownloadSection audit={audit} waste={w} report={report} displayName={displayName} />
+      )}
 
       {/* ═══ FIRST FIX CARD — partially visible in locked state ═══ */}
       {fixes.length > 0 && (
@@ -669,11 +669,6 @@ export default function ResultsPage() {
               </p>
             </div>
           </section>
-
-          {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
-          {report && !reportLoading && !locked && (
-            <PdfDownloadSection audit={audit} waste={w} report={report} displayName={displayName} />
-          )}
 
           {/* ═══ CTA ═══ */}
           <section className="relative z-10 py-28 px-6 bg-[#f5f5f5]/80 backdrop-blur-sm border-t border-[#e5e5e5]">
