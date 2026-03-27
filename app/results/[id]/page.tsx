@@ -509,16 +509,20 @@ export default function ResultsPage() {
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
 
+      {/* Report ready label — below the divider */}
+      <div className="relative z-10 mt-10 mb-2 text-center">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#00D084]">Your full report is ready</p>
+      </div>
+
       {/* ═══ FIRST FIX CARD — partially visible in locked state ═══ */}
       {fixes.length > 0 && (
-        <section className="relative z-10 py-24 px-6 max-w-4xl mx-auto">
+        <section className="relative z-10 py-16 px-6 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#00D084] mb-4 text-center">Your full report is ready</p>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-serif text-[#1a1a2e] mb-4 text-center">
               The three highest-ROI fixes for {displayName}
             </h2>
