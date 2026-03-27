@@ -222,6 +222,15 @@ export default function HomePage() {
               Calculate My Lost Revenue Now &nbsp;&rarr;
             </button>
           </motion.div>
+
+          <motion.p
+            className="mt-6 text-[13px] text-[#aaa] max-w-md mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+          >
+            Built for businesses fielding 20+ inbound calls a week where every unanswered ring is revenue walking out the door.
+          </motion.p>
         </div>
 
         <motion.div
