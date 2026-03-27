@@ -595,7 +595,10 @@ export default function ResultsPage() {
       {/* Divider */}
       <div className="relative z-10 max-w-5xl mx-auto px-6"><div className="h-[1px] bg-[#eee]" /></div>
 
-      {/* ═══ SECTION 2: HOW WE CALCULATED THIS ═══ */}
+      {/* ═══ SECTION 2: THE THREE FIXES ═══ */}
+      <FixesSection fixes={fixes} companyName={displayName} loading={reportLoading} />
+
+      {/* ═══ SECTION 3: HOW WE CALCULATED THIS ═══ */}
       <section className="relative z-10 py-24 px-6">
         <div className="max-w-3xl mx-auto">
           <motion.p
@@ -668,9 +671,6 @@ export default function ResultsPage() {
           </p>
         </div>
       </section>
-
-      {/* ═══ SECTION 3: THE THREE FIXES ═══ */}
-      <FixesSection fixes={fixes} companyName={displayName} loading={reportLoading} />
 
       {/* ═══ DOWNLOAD + EMAIL NOTE ═══ */}
       {report && !reportLoading && (
