@@ -727,16 +727,16 @@ export default function ResultsPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="bg-white rounded-2xl border border-[#e5e7eb] p-8 max-w-[480px] w-full shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
-                <h2 className="text-[22px] font-serif text-[#1a1a2e]">Your full breakdown is ready.</h2>
-                <p className="mt-2 text-[15px] text-[#888] leading-[1.7]">
+              <div className="bg-[#00D084] rounded-2xl p-8 max-w-[480px] w-full shadow-[0_8px_32px_rgba(0,208,132,0.25)]">
+                <h2 className="text-[22px] font-serif text-white">Your full breakdown is ready.</h2>
+                <p className="mt-2 text-[15px] text-white/80 leading-[1.7]">
                   We&rsquo;ll personalise the findings for your specific business before showing you everything. Takes 30 seconds.
                 </p>
 
                 <div className="mt-6 space-y-3">
                   {/* Email */}
                   <div>
-                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Work email</label>
+                    <label className="block text-[13px] font-medium text-white/70 mb-1.5">Work email</label>
                     <input
                       type="email"
                       value={overlayEmail}
@@ -746,14 +746,14 @@ export default function ResultsPage() {
                       className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayEmail.trim()
                           ? 'border-red-400'
-                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                          : 'border-white/30 focus:border-white'
                       }`}
                     />
                     {overlaySubmitAttempted && !overlayEmail.trim() && (
-                      <p className="mt-1 text-[13px] text-red-500">We need this to generate your report.</p>
+                      <p className="mt-1 text-[13px] text-white font-medium">We need this to generate your report.</p>
                     )}
                     {personalEmailWarning && overlayEmail.trim() && (
-                      <p className="mt-1 text-[13px] text-amber-600">
+                      <p className="mt-1 text-[13px] text-yellow-100">
                         Looks like a personal email. Please use your work email if you have one, or add your website below so we can find your business.
                       </p>
                     )}
@@ -761,7 +761,7 @@ export default function ResultsPage() {
 
                   {/* Website */}
                   <div>
-                    <label className="block text-[13px] font-medium text-[#888] mb-1.5">Your website</label>
+                    <label className="block text-[13px] font-medium text-white/70 mb-1.5">Your website</label>
                     <input
                       type="text"
                       value={overlayWebsite}
@@ -770,13 +770,13 @@ export default function ResultsPage() {
                       className={`w-full rounded-xl border bg-white px-4 py-3 text-[15px] text-[#1a1a2e] placeholder-[#bbb] focus:outline-none transition-colors ${
                         overlaySubmitAttempted && !overlayWebsite.trim()
                           ? 'border-red-400'
-                          : 'border-[#e5e5e5] focus:border-[#00D084]'
+                          : 'border-white/30 focus:border-white'
                       }`}
                     />
                     {overlaySubmitAttempted && !overlayWebsite.trim() && (
-                      <p className="mt-1 text-[13px] text-red-500">We need this to generate your report.</p>
+                      <p className="mt-1 text-[13px] text-white font-medium">We need this to generate your report.</p>
                     )}
-                    <p className="mt-1 text-[12px] text-[#aaa]">
+                    <p className="mt-1 text-[12px] text-white/60">
                       No website? Paste your Google Business or LinkedIn company page URL instead.
                     </p>
                   </div>
@@ -785,10 +785,10 @@ export default function ResultsPage() {
                   <button
                     onClick={handleReveal}
                     disabled={overlaySubmitting || !overlayReady}
-                    className={`w-full h-[52px] rounded-lg text-[15px] font-medium transition-colors ${
+                    className={`w-full h-[52px] rounded-lg text-[15px] font-semibold transition-colors ${
                       overlayReady
-                        ? 'bg-[#00D084] text-white hover:bg-[#00e090] cursor-pointer'
-                        : 'bg-[#d1d5db] text-[#6b7280] cursor-not-allowed'
+                        ? 'bg-[#1a1a2e] text-white hover:bg-[#0f0f1e] cursor-pointer'
+                        : 'bg-white/30 text-white/50 cursor-not-allowed'
                     } disabled:opacity-70`}
                   >
                     {overlaySubmitting ? (
@@ -796,7 +796,7 @@ export default function ResultsPage() {
                     ) : 'Show Me Everything'}
                   </button>
 
-                  <p className="text-[12px] text-[#aaa] text-center">We do not share your details with anyone. Ever.</p>
+                  <p className="text-[12px] text-white/50 text-center">We do not share your details with anyone. Ever.</p>
                 </div>
               </div>
             </motion.div>
