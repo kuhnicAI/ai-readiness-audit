@@ -111,6 +111,7 @@ function AuditForm() {
   const [error, setError] = useState('')
   const [direction, setDirection] = useState(1)
   const [disqualified, setDisqualified] = useState(false)
+  const [transitionLine, setTransitionLine] = useState('')
 
   // Persist to sessionStorage
   useEffect(() => {
@@ -140,6 +141,35 @@ function AuditForm() {
 
   const navigatingRef = useRef(false)
 
+  const TRANSITION_LINES: Record<string, Record<string, string>> = {
+    weekly_inbound: {
+      '20 to 50 per week': 'At that volume a single missed call carries real weight.',
+      '50 to 150 per week': 'That is a meaningful volume. Even a small miss rate adds up fast.',
+      '150 to 500 per week': 'At that volume missed calls are almost certainly a five figure annual problem.',
+      'Over 500 per week': 'That kind of volume means missed calls are costing you serious money every week.',
+    },
+    client_value: {
+      'Under £500': 'Volume is the driver here. Your miss rate will do the work.',
+      '£500 to £2,000': 'At that value a handful of missed calls a week becomes a serious annual figure.',
+      '£2,000 to £10,000': 'That changes the calculation significantly. Each missed call carries real weight.',
+      'Over £10,000': 'At that value even one missed call per day is a six figure annual problem.',
+    },
+    urgency: {
+      'Actively looking for a solution': 'Good. Your number is ready.',
+      'On the radar for this year': 'Understood. Here is what the delay is costing you.',
+      'Just curious what the number is': 'The number tends to change that.',
+    },
+  }
+
+  const advanceStep = () => {
+    if (step < totalSteps - 1) {
+      navigatingRef.current = true
+      setDirection(1)
+      setStep(s => s + 1)
+      setTimeout(() => { navigatingRef.current = false }, 400)
+    }
+  }
+
   const handleNext = () => {
     if (navigatingRef.current) return
 
@@ -158,12 +188,21 @@ function AuditForm() {
       return
     }
 
-    if (step < totalSteps - 1) {
+    // Check for transition lines on specific questions
+    const questionId = screen.id
+    const answer = answers[questionId]
+    const lines = TRANSITION_LINES[questionId]
+    if (lines && answer && lines[answer]) {
       navigatingRef.current = true
-      setDirection(1)
-      setStep(s => s + 1)
-      setTimeout(() => { navigatingRef.current = false }, 400)
+      setTransitionLine(lines[answer])
+      setTimeout(() => {
+        setTransitionLine('')
+        advanceStep()
+      }, 900)
+      return
     }
+
+    advanceStep()
   }
 
   const handleBack = () => {
@@ -387,6 +426,16 @@ function AuditForm() {
                 ))}
                 {screen.note && (
                   <p className="mt-4 text-[13px] text-[#555]">{screen.note}</p>
+                )}
+                {transitionLine && (
+                  <motion.p
+                    className="mt-5 text-[15px] text-[#888]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {transitionLine}
+                  </motion.p>
                 )}
               </div>
             )}
