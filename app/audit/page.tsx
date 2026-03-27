@@ -3,6 +3,9 @@
 import { useState, useCallback, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
+
+const SplitText = dynamic(() => import('@/components/SplitText'), { ssr: false })
 
 interface Screen {
   id: string
@@ -261,23 +264,22 @@ function AuditForm() {
   if (transitionLine) {
     return (
       <div className="min-h-screen bg-white text-[#1a1a2e] flex items-center justify-center overflow-hidden">
-        <motion.div
-          key={transitionLine}
-          className="text-center max-w-xl mx-auto px-6"
-          initial={{ opacity: 0, y: 30, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <motion.div
-            className="w-8 h-[2px] bg-[#00D084] mx-auto mb-6 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: 32 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+        <div className="text-center max-w-2xl mx-auto px-6">
+          <SplitText
+            text={transitionLine}
+            className="text-[clamp(1.6rem,4vw,2.4rem)] font-serif text-[#888]"
+            delay={30}
+            duration={0.8}
+            ease="power3.out"
+            splitType="chars"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0}
+            rootMargin="0px"
+            textAlign="center"
+            onLetterAnimationComplete={() => {}}
           />
-          <p className="text-[clamp(1.4rem,3.5vw,2rem)] font-serif text-[#888] leading-snug">
-            {transitionLine}
-          </p>
-        </motion.div>
+        </div>
       </div>
     )
   }
