@@ -175,59 +175,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
   ${pf(2)}
 </div>
 
-<!-- METHODOLOGY -->
-<div class="page">
-  <h1 class="serif" style="font-size:26px;margin-bottom:14px;page-break-inside:avoid;">Methodology</h1>
-  <p class="muted" style="font-size:12px;line-height:1.6;margin-bottom:20px;">All figures use the lower bound of every range selected. The conversion assumption is 15%, which is conservative for most call-heavy verticals. Actual recoverable value is likely higher.</p>
-  <div class="two-col">
-    <div>
-      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Missed call revenue calculation</h3>
-      <div class="calc-row"><span>Daily inbound calls</span><span>${w.dailyCalls}</span></div>
-      <div class="calc-row"><span>Missed or voicemail rate</span><span>${Math.round(w.missedRate*100)}%${w.missedRateAssumed?' (est.)':''}</span></div>
-      <div class="calc-row"><span>Missed calls per day</span><span>${Math.round(w.missedCallsPerDay)}</span></div>
-      <div class="calc-row"><span>Missed calls per year</span><span>${w.missedCallsAnnual.toLocaleString('en-GB')}</span></div>
-      <div class="calc-row"><span>Conversion rate</span><span>${Math.round(w.conversionRate*100)}%${w.conversionRateAssumed?' (est.)':''}</span></div>
-      <div class="calc-row"><span>Lost conversions per year</span><span>${w.lostConversionsAnnual}</span></div>
-      <div class="calc-row"><span>Average client value</span><span>${fmt(w.clientValue)}</span></div>
-      <div class="calc-row"><span>After-hours multiplier</span><span>${w.afterHoursMultiplier}x</span></div>
-      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.revenueAtRisk)}</span></div>
-    </div>
-    <div>
-      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Cost comparison</h3>
-      <div class="calc-row"><span>Current receptionist cost</span><span>£28,000/yr</span></div>
-      <div class="calc-row"><span style="font-size:10px;color:#9ca3af;">Based on UK average fully loaded cost</span><span></span></div>
-      <div class="calc-row"><span>AI voice agent cost</span><span>£4,500/yr</span></div>
-      <div class="calc-row"><span>Receptionist saving</span><span>${fmt(w.receptionistCost - w.voiceAgentCost)}</span></div>
-      <div class="calc-row bold"><span>Net annual opportunity</span><span>${fmt(w.netOpportunity)}</span></div>
-    </div>
-  </div>
-  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.revenueAtRisk)}.</strong> Combined with the receptionist cost saving, switching to an AI voice agent represents a net annual opportunity of ${fmt(w.netOpportunity)}. Most businesses recover implementation costs within 30 to 60 days.${w.wasCapped ? `<br/><br/><span style="font-size:11px;color:#6b7280;">${esc(w.capReason)}</span>` : ''}</div>
-  <p class="muted" style="font-size:11px;margin-top:10px;">All figures use conservative midpoints and are capped at realistic bounds for your business size and industry. Your actual exposure may be higher.</p>
-  <svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:16px;">
-    <rect width="480" height="320" fill="white" rx="8"/>
-    <rect x="40" y="20" width="200" height="130" fill="rgba(0,201,125,0.08)" rx="4"/>
-    <text x="50" y="38" font-size="10" fill="#00c97d" font-family="Arial,sans-serif" font-weight="600">Highest priority</text>
-    <line x1="40" y1="90" x2="460" y2="90" stroke="#e5e7eb" stroke-width="0.5"/>
-    <line x1="40" y1="160" x2="460" y2="160" stroke="#e5e7eb" stroke-width="0.5"/>
-    <line x1="40" y1="230" x2="460" y2="230" stroke="#e5e7eb" stroke-width="0.5"/>
-    <line x1="145" y1="20" x2="145" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
-    <line x1="250" y1="20" x2="250" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
-    <line x1="355" y1="20" x2="355" y2="295" stroke="#e5e7eb" stroke-width="0.5"/>
-    <text x="14" y="160" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" transform="rotate(-90,14,160)" text-anchor="middle">Financial Impact</text>
-    <text x="250" y="315" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Implementation Effort →</text>
-    <circle cx="${40+420*0.22}" cy="${20+275*0.15}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.22}" y="${20+275*0.15+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">1</text>
-    <text x="${40+420*0.22+22}" y="${20+275*0.15+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f1L}</text>
-    <circle cx="${40+420*0.28}" cy="${20+275*0.45}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.28}" y="${20+275*0.45+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">2</text>
-    <text x="${40+420*0.28+22}" y="${20+275*0.45+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f2L}</text>
-    <circle cx="${40+420*0.38}" cy="${20+275*0.65}" r="16" fill="#00c97d"/>
-    <text x="${40+420*0.38}" y="${20+275*0.65+4}" font-size="11" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">3</text>
-    <text x="${40+420*0.38+22}" y="${20+275*0.65+4}" font-size="9" fill="#374151" font-family="Arial,sans-serif">${f3L}</text>
-  </svg>
-  ${pf(3)}
-</div>
-
 <!-- THREE FIXES -->
 <div class="page">
   <h1 class="serif" style="font-size:26px;margin-bottom:6px;page-break-inside:avoid;">Recommended Actions Ranked by ROI</h1>
@@ -258,7 +205,87 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
       <div><div class="col-label" style="color:#00c97d;">After the fix</div><p style="font-size:12px;line-height:1.6;color:#374151;">${esc(r.fix3AfterFix)}</p></div>
     </div>
   </div>
+  ${pf(3)}
+</div>
+
+<!-- METHODOLOGY + CHART -->
+<div class="page">
+  <h1 class="serif" style="font-size:26px;margin-bottom:14px;page-break-inside:avoid;">Methodology</h1>
+  <p class="muted" style="font-size:12px;line-height:1.6;margin-bottom:20px;">All figures use the lower bound of every range selected. The conversion assumption is 15%, which is conservative for most call-heavy verticals. Actual recoverable value is likely higher.</p>
+  <div class="two-col">
+    <div>
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Missed call revenue calculation</h3>
+      <div class="calc-row"><span>Daily inbound calls</span><span>${w.dailyCalls}</span></div>
+      <div class="calc-row"><span>Missed or voicemail rate</span><span>${Math.round(w.missedRate*100)}%${w.missedRateAssumed?' (est.)':''}</span></div>
+      <div class="calc-row"><span>Missed calls per day</span><span>${Math.round(w.missedCallsPerDay)}</span></div>
+      <div class="calc-row"><span>Missed calls per year</span><span>${w.missedCallsAnnual.toLocaleString('en-GB')}</span></div>
+      <div class="calc-row"><span>Conversion rate</span><span>${Math.round(w.conversionRate*100)}%${w.conversionRateAssumed?' (est.)':''}</span></div>
+      <div class="calc-row"><span>Lost conversions per year</span><span>${w.lostConversionsAnnual}</span></div>
+      <div class="calc-row"><span>Average client value</span><span>${fmt(w.clientValue)}</span></div>
+      <div class="calc-row"><span>After-hours multiplier</span><span>${w.afterHoursMultiplier}x</span></div>
+      <div class="calc-row bold"><span>Annual revenue at risk</span><span>${fmt(w.revenueAtRisk)}</span></div>
+    </div>
+    <div>
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Cost comparison</h3>
+      <div class="calc-row"><span>Current receptionist cost</span><span>£28,000/yr</span></div>
+      <div class="calc-row"><span style="font-size:10px;color:#9ca3af;">Based on UK average fully loaded cost</span><span></span></div>
+      <div class="calc-row"><span>AI voice agent cost</span><span>£4,500/yr</span></div>
+      <div class="calc-row"><span>Receptionist saving</span><span>${fmt(w.receptionistCost - w.voiceAgentCost)}</span></div>
+      <div class="calc-row bold"><span>Net annual opportunity</span><span>${fmt(w.netOpportunity)}</span></div>
+    </div>
+  </div>
+  <div class="green-box"><strong>Annual revenue at risk from missed calls: ${fmt(w.revenueAtRisk)}.</strong> Combined with the receptionist cost saving, switching to an AI voice agent represents a net annual opportunity of ${fmt(w.netOpportunity)}. Most businesses recover implementation costs within 30 to 60 days.${w.wasCapped ? `<br/><br/><span style="font-size:11px;color:#6b7280;">${esc(w.capReason)}</span>` : ''}</div>
+  <p class="muted" style="font-size:11px;margin-top:10px;">All figures use conservative midpoints and are capped at realistic bounds for your business size and industry. Your actual exposure may be higher.</p>
   ${pf(4)}
+</div>
+
+<!-- PRIORITY MATRIX -->
+<div class="page">
+  <h1 class="serif" style="font-size:26px;margin-bottom:6px;page-break-inside:avoid;">Priority Matrix</h1>
+  <p class="muted" style="font-size:12px;line-height:1.6;margin-bottom:24px;">Each fix is plotted by financial impact versus implementation effort. The green zone in the top-left represents the highest priority actions — high return, low effort.</p>
+  <svg width="480" height="380" viewBox="0 0 480 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+    <rect width="480" height="380" fill="white" rx="8"/>
+    <!-- Title -->
+    <text x="240" y="24" font-size="14" fill="#0a0a0a" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">Impact vs Effort</text>
+    <!-- Green priority zone -->
+    <rect x="50" y="40" width="190" height="140" fill="rgba(0,201,125,0.08)" rx="4"/>
+    <text x="60" y="58" font-size="10" fill="#00c97d" font-family="Arial,sans-serif" font-weight="600">HIGH IMPACT · LOW EFFORT</text>
+    <!-- Grid lines -->
+    <line x1="50" y1="110" x2="460" y2="110" stroke="#e5e7eb" stroke-width="0.5"/>
+    <line x1="50" y1="180" x2="460" y2="180" stroke="#e5e7eb" stroke-width="0.5"/>
+    <line x1="50" y1="250" x2="460" y2="250" stroke="#e5e7eb" stroke-width="0.5"/>
+    <line x1="155" y1="40" x2="155" y2="320" stroke="#e5e7eb" stroke-width="0.5"/>
+    <line x1="255" y1="40" x2="255" y2="320" stroke="#e5e7eb" stroke-width="0.5"/>
+    <line x1="360" y1="40" x2="360" y2="320" stroke="#e5e7eb" stroke-width="0.5"/>
+    <!-- Y axis label -->
+    <text x="20" y="180" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" transform="rotate(-90,20,180)" text-anchor="middle">Financial Impact ↑</text>
+    <!-- X axis label -->
+    <text x="255" y="345" font-size="11" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Implementation Effort →</text>
+    <!-- Y axis ticks -->
+    <text x="46" y="73" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">High</text>
+    <text x="46" y="183" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Medium</text>
+    <text x="46" y="293" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="end">Low</text>
+    <!-- X axis ticks -->
+    <text x="100" y="335" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Low</text>
+    <text x="255" y="335" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">Medium</text>
+    <text x="410" y="335" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif" text-anchor="middle">High</text>
+    <!-- Fix 1 -->
+    <circle cx="${50+410*0.22}" cy="${40+280*0.15}" r="18" fill="#00c97d"/>
+    <text x="${50+410*0.22}" y="${40+280*0.15+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">1</text>
+    <text x="${50+410*0.22+24}" y="${40+280*0.15+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f1L}</text>
+    <!-- Fix 2 -->
+    <circle cx="${50+410*0.35}" cy="${40+280*0.45}" r="18" fill="#34d399"/>
+    <text x="${50+410*0.35}" y="${40+280*0.45+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">2</text>
+    <text x="${50+410*0.35+24}" y="${40+280*0.45+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f2L}</text>
+    <!-- Fix 3 -->
+    <circle cx="${50+410*0.48}" cy="${40+280*0.68}" r="18" fill="#6ee7b7"/>
+    <text x="${50+410*0.48}" y="${40+280*0.68+5}" font-size="12" fill="white" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle">3</text>
+    <text x="${50+410*0.48+24}" y="${40+280*0.68+5}" font-size="10" fill="#374151" font-family="Arial,sans-serif" font-weight="600">${f3L}</text>
+    <!-- Legend -->
+    <rect x="50" y="355" width="410" height="1" fill="#e5e7eb"/>
+    <text x="50" y="373" font-size="9" fill="#9ca3af" font-family="Arial,sans-serif">Bubble position indicates relative priority. Fix 1 delivers the highest return for the least effort.</text>
+  </svg>
+  ${pf(5)}
 </div>
 
 <!-- ROADMAP -->
@@ -287,7 +314,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
   </div>
   <p class="muted" style="font-size:11px;margin-top:14px;">Timelines are indicative. Exact scope is confirmed during the initial consultation.</p>
   <div class="benchmark-box">The average ${typeLabel} with ${sizeLabel} employees loses ${fmtBenchmark(benchLow)} to ${fmtBenchmark(benchHigh)} annually to these same inefficiencies. ${esc(displayName)} is currently operating within this range. Closing the gap to best-in-class represents significant upside beyond the ${fmt(w.totalWaste)} calculated here.</div>
-  ${pf(5)}
+  ${pf(6)}
 </div>
 
 <!-- NEXT STEPS -->
@@ -309,7 +336,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
       </div>
     </div>
   </div>
-  ${pf(6)}
+  ${pf(7)}
 </div>
 
 <div id="content-ready"></div>
